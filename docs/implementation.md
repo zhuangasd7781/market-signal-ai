@@ -54,7 +54,7 @@
 | GET | `/api/products/{symbol}/analysis/history?market=TW` | 最近 100 筆，最新在前 |
 | GET | `/api/ai/providers` | 啟用 provider，按 SortOrder 排序 |
 
-歷史變化依同 user/product/provider 的最近兩筆 action 與 quantity 比較。首頁時間是該商品所有已顯示訊號的最新時間；單一訊號 hover 顯示自身時間。`CHANGED` 表示相對前次分析變化，不是「尚未讀取」。無分析不偽造 HOLD；不提供市場資料時不顯示報酬。
+歷史變化依同 user/product/provider 的最近兩筆 action 與 quantity 比較。首頁時間是該商品所有已顯示訊號中最新一次完整分析的時間；hover 會列出各啟用 AI 的分析時間，尚無分析者顯示「尚未分析」。單一訊號 hover 也可查看自身時間。「已變更」表示相對前次分析變化，不是「尚未讀取」。無分析不偽造持有；不提供市場資料時不顯示報酬。
 
 目前不提供分析生成 endpoint，避免以固定 mock 訊號假冒真實 AI 呼叫。
 

@@ -8,12 +8,19 @@ export function SignalBadge({ action, quantity, changed = false, reserveChangeSp
   const label = { ADD: '加碼', HOLD: '持有', REDUCE: '減碼', EXIT: '出場' }[action];
   return <span className="signal-wrap"><span className={`signal ${action.toLowerCase()}`}>{label}{quantity != null && quantity > 0 && (action === 'ADD' || action === 'REDUCE') ? ` ${quantity}` : ''}</span>{(changed || reserveChangeSpace) && <span className={`changed${changed ? '' : ' changed-placeholder'}`} title={changed ? '相較前次分析，動作或數量已改變' : undefined} aria-hidden={!changed}>已變更</span>}</span>;
 }
-export function RelativeTime({ value }: { value: string | null }) {
+function formatRelativeTime(value: string, now: number) {
+  const minutes = Math.max(0, Math.floor((now - Date.parse(value)) / 60000));
+  return minutes < 1 ? '剛剛' : minutes < 60 ? `${minutes} 分鐘前` : minutes < 1440 ? `${Math.floor(minutes / 60)} 小時前` : `${Math.floor(minutes / 1440)} 天前`;
+}
+
+export function RelativeTime({ value, providerTimes }: { value: string | null; providerTimes?: { name: string; analyzedAt: string | null }[] }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
   if (!value) return <span className="muted">尚未分析</span>;
-  const minutes = Math.max(0, Math.floor((now - Date.parse(value)) / 60000));
-  return <time dateTime={value} title={new Date(value).toLocaleString('zh-TW')}>{minutes < 1 ? '剛剛' : minutes < 60 ? `${minutes} 分鐘前` : minutes < 1440 ? `${Math.floor(minutes / 60)} 小時前` : `${Math.floor(minutes / 1440)} 天前`}</time>;
+  const title = providerTimes
+    ? providerTimes.map(({ name, analyzedAt }) => `${name}：${analyzedAt ? `${formatRelativeTime(analyzedAt, now)}（${new Date(analyzedAt).toLocaleString('zh-TW')}）` : '尚未分析'}`).join('\n')
+    : new Date(value).toLocaleString('zh-TW');
+  return <time dateTime={value} title={title}>{formatRelativeTime(value, now)}</time>;
 }
 export function ErrorState({ message, retry }: { message: string; retry?: () => void }) {
   return <div className="error" role="alert">{message}{retry && <button onClick={retry}>重試</button>}</div>;
@@ -26,7 +33,7 @@ export function WatchlistTable({ data }: { data: Watchlist }) {
   return <div className="table-scroll"><table><thead><tr><th>追蹤商品</th>{data.providers.map(p => <th key={p.code}><span className="provider-heading"><ProviderLogo code={p.code} />{p.displayName}</span></th>)}<th>最後分析</th><th aria-label="查看詳情" /></tr></thead><tbody>
     {data.items.map(({ product, signals, lastAnalyzedAt }) => <tr key={product.id}><td><ProductLink product={product}><strong className="symbol">{product.symbol}</strong>{' '}<span className="product-name">{product.name}</span></ProductLink><span className="market">{product.market} · {product.assetType}{product.isLeveraged ? ' · 2×' : ''}</span></td>
       {data.providers.map(p => { const signal = signals.find(s => s.provider === p.code); return <td key={p.code}>{signal ? <span title={new Date(signal.analyzedAt).toLocaleString('zh-TW')}><SignalBadge {...signal} reserveChangeSpace /></span> : <span className="muted">尚未分析</span>}</td>; })}
-      <td className="time"><RelativeTime value={lastAnalyzedAt} /></td><td><ProductLink product={product}><span className="row-arrow" aria-label={`查看 ${product.symbol} 詳情`}>↗</span></ProductLink></td></tr>)}
+      <td className="time"><RelativeTime value={lastAnalyzedAt} providerTimes={data.providers.map(p => ({ name: p.displayName, analyzedAt: signals.find(s => s.provider === p.code)?.analyzedAt ?? null }))} /></td><td><ProductLink product={product}><span className="row-arrow" aria-label={`查看 ${product.symbol} 詳情`}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></span></ProductLink></td></tr>)}
   </tbody></table></div>;
 }
 
