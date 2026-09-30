@@ -1,0 +1,1572 @@
+# Project: Market Signal AI
+
+Repository name:
+
+`market-signal-ai`
+
+Build a clean MVP web application named **Market Signal AI**.
+
+Market Signal AI is a multi-AI investment signal dashboard.
+
+The core concept is:
+
+> Users add investment products they want to track. Multiple AI analysts independently analyze each product and provide simple actionable signals such as ADD, HOLD, REDUCE, or EXIT.
+
+The application should NOT look like a traditional brokerage platform.
+
+The main product experience is:
+
+**Tracked Product × AI Signal**
+
+The home page exists primarily to answer:
+
+> What are my AI analysts currently recommending for the products I follow?
+
+Detailed portfolio information, market data, reasoning, Root Events, and technical analysis belong on the product detail page, not the home page.
+
+---
+
+# 1. Technology Stack
+
+Use the following stack.
+
+## Backend
+
+- C#
+- ASP.NET Core
+- FastEndpoints
+- Dapper
+- MySQL
+- REST API
+- Dependency Injection
+- async/await
+- Nullable reference types enabled
+
+Do NOT use Entity Framework.
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Responsive UI
+- Clean component architecture
+
+Choose a lightweight, maintainable styling approach.
+
+Avoid unnecessarily large UI frameworks unless there is a clear benefit.
+
+## Authentication
+
+- Google Sign-In / Google OAuth
+
+Authentication architecture should allow additional login providers in the future.
+
+## Future Deployment
+
+The application will eventually be deployed to Google Cloud Platform.
+
+Design for:
+
+Frontend
+→ Cloud Run or static hosting
+
+Backend
+→ Cloud Run
+
+Database
+→ Cloud SQL for MySQL
+
+Secrets
+→ Google Secret Manager
+
+Do NOT introduce Kubernetes for V1.
+
+Local development must work without GCP.
+
+---
+
+# 2. Repository Structure
+
+Create:
+
+market-signal-ai/
+
+    backend/
+        MarketSignalAI.Api/
+        MarketSignalAI.Application/
+        MarketSignalAI.Domain/
+        MarketSignalAI.Infrastructure/
+
+    frontend/
+
+    docs/
+
+    docker-compose.yml
+    README.md
+    .gitignore
+
+Create:
+
+MarketSignalAI.sln
+
+Use namespaces:
+
+MarketSignalAI.Api
+MarketSignalAI.Application
+MarketSignalAI.Domain
+MarketSignalAI.Infrastructure
+
+Keep boundaries clean but do NOT over-engineer the MVP.
+
+---
+
+# 3. Product Philosophy
+
+The UI should be extremely focused.
+
+Market Signal AI is NOT:
+
+- a brokerage application
+- a TradingView clone
+- a portfolio accounting system
+- a Bloomberg-style terminal
+
+It is primarily:
+
+> An AI investment signal board.
+
+The normal user flow is:
+
+Login
+
+→ View tracked products
+
+→ Scan AI signals
+
+→ Notice an interesting or changed signal
+
+→ Open product
+
+→ Review position and AI reasoning
+
+→ Make their own investment decision
+
+The AI does NOT execute trades.
+
+---
+
+# 4. Authentication
+
+Implement Google authentication.
+
+User flow:
+
+1. User opens Market Signal AI.
+2. User signs in using Google.
+3. Application creates or loads the internal user.
+4. User sees their own watchlist.
+5. User can sign out.
+
+Persist an internal user record.
+
+Suggested fields:
+
+User
+
+- Id
+- GoogleSubjectId
+- Email
+- DisplayName
+- AvatarUrl
+- CreatedAt
+- LastLoginAt
+
+Use Google Subject ID as the external identity key.
+
+Do not use email as the permanent external identity identifier.
+
+Never store Google passwords.
+
+---
+
+# 5. Products
+
+Create a product model representing an investment product.
+
+Suggested fields:
+
+Product
+
+- Id
+- Symbol
+- Name
+- Market
+- AssetType
+- IsActive
+- CreatedAt
+- UpdatedAt
+
+Example:
+
+Symbol:
+00631L
+
+Name:
+元大台灣50正2
+
+Market:
+TW
+
+AssetType:
+ETF
+
+Design the model so products other than Taiwanese stocks can potentially be supported later.
+
+Do not hardcode the entire system specifically to Taiwan stocks.
+
+---
+
+# 6. Watchlist
+
+Users can add products they want to track.
+
+A tracked product does NOT require the user to own it.
+
+Example:
+
+User tracks:
+
+00631L
+2330
+5871
+
+The user may own some, all, or none of them.
+
+Suggested model:
+
+UserWatchlist
+
+- Id
+- UserId
+- ProductId
+- CreatedAt
+
+Prevent duplicate watchlist entries for the same user/product combination.
+
+---
+
+# 7. Position
+
+For a tracked product, the user may optionally enter their actual position.
+
+Suggested model:
+
+UserPosition
+
+- Id
+- UserId
+- ProductId
+- Quantity
+- AverageCost
+- UpdatedAt
+
+Quantity and AverageCost are optional from the product-tracking perspective.
+
+A user should be allowed to track:
+
+2330 台積電
+
+without entering any position.
+
+Position information must NOT appear on the home page.
+
+It belongs on the product detail page.
+
+---
+
+# 8. Home Page
+
+This is the most important UI requirement.
+
+The home page should be a simple table.
+
+Do NOT show:
+
+- current price
+- daily price change
+- quantity
+- average cost
+- unrealized P/L
+- return percentage
+- total portfolio value
+- RSI
+- MACD
+- moving averages
+- technical charts
+- Root Event details
+- market regime details
+
+The home page should focus only on:
+
+**Tracked Products + AI Signals**
+
+---
+
+# 9. Home Page Layout
+
+Use this as the primary UI reference.
+
+Market Signal AI
+
+我的追蹤
+
+[ 搜尋追蹤商品... ]                         [ + 加入商品 ]
+
+-----------------------------------------------------------------------
+
+追蹤商品             DeepSeek        GPT         Claude      最後分析
+
+00631L 台灣50正2     HOLD            REDUCE 1    HOLD        剛剛       ＞
+
+5871 中租-KY         ADD 1           HOLD        HOLD        12 分鐘前  ＞
+
+2330 台積電          REDUCE 1        REDUCE 1    HOLD        1 小時前   ＞
+
+-----------------------------------------------------------------------
+
+The `＞` button at the end of every row opens the product detail page.
+
+The table is the visual focus of the home page.
+
+Do not wrap every product inside a giant card.
+
+Use a clean table with comfortable spacing.
+
+Rows should have a subtle hover state.
+
+---
+
+# 10. AI Signal Display
+
+Supported actions:
+
+ADD
+HOLD
+REDUCE
+EXIT
+
+Examples:
+
+ADD 1
+
+HOLD
+
+REDUCE 2
+
+EXIT
+
+Signals should be rendered as compact badges.
+
+Use semantic visual distinction:
+
+ADD
+→ positive
+
+HOLD
+→ neutral
+
+REDUCE
+→ warning
+
+EXIT
+→ danger
+
+Keep the styling restrained.
+
+The signal text itself should remain obvious.
+
+---
+
+# 11. Dynamic AI Columns
+
+This requirement is critical.
+
+Do NOT hardcode:
+
+DeepSeek
+GPT
+Claude
+
+directly into the table implementation.
+
+AI providers must come from backend configuration/database.
+
+Conceptually:
+
+Enabled providers:
+
+DeepSeek
+OpenAI
+Claude
+
+produces:
+
+| Product | DeepSeek | OpenAI | Claude | Updated | > |
+
+If Gemini is later enabled:
+
+| Product | DeepSeek | OpenAI | Claude | Gemini | Updated | > |
+
+The frontend should render AI provider columns dynamically.
+
+---
+
+# 12. No Artificial AI Winner
+
+Do NOT create:
+
+- Best AI
+- Winning AI
+- Recommended AI
+- AI score ranking
+
+Do NOT automatically decide which AI provider is correct.
+
+Each AI provider gives an independent opinion.
+
+Example:
+
+00631L
+
+DeepSeek
+HOLD
+
+OpenAI
+REDUCE 1
+
+Claude
+HOLD
+
+The user should be able to see disagreement directly.
+
+---
+
+# 13. Signal Freshness
+
+The home page should display when the analysis was last updated.
+
+Prefer human-readable relative time.
+
+Examples:
+
+剛剛
+
+12 分鐘前
+
+1 小時前
+
+昨天
+
+The exact timestamp can be shown in a tooltip if useful.
+
+Signal freshness matters more than market-price information on the home page.
+
+---
+
+# 14. Signal Change Detection
+
+Persist enough history to determine whether a signal changed.
+
+Example:
+
+Previous DeepSeek signal:
+
+HOLD
+
+Current DeepSeek signal:
+
+REDUCE 1
+
+The system should recognize this as a changed signal.
+
+Design the UI so a subtle indicator can be displayed:
+
+NEW
+
+or
+
+CHANGED
+
+Do not make it visually overwhelming.
+
+Signal changes should be easy to notice.
+
+---
+
+# 15. Add Product
+
+The home page contains:
+
+`+ 加入商品`
+
+Opening it should allow the user to search by:
+
+- symbol
+- product name
+
+Example:
+
+Search:
+
+00631L
+
+Result:
+
+00631L
+元大台灣50正2
+
+The user can add the product to their watchlist.
+
+Position information should NOT be required during this flow.
+
+Adding a product means:
+
+> I want AI to track/analyze this product.
+
+It does not mean:
+
+> I own this product.
+
+---
+
+# 16. Product Detail Page
+
+Route:
+
+/products/{symbol}
+
+Clicking the `＞` button on the home page opens this page.
+
+The page contains:
+
+1. Product header
+2. My Position
+3. AI Recommendations
+4. Detailed AI reasoning
+
+---
+
+# 17. Product Header
+
+Keep the header minimal.
+
+Example:
+
+00631L
+元大台灣50正2
+
+Do not overload the header.
+
+---
+
+# 18. My Position
+
+This is where portfolio information appears.
+
+Display:
+
+持有張數
+
+平均成本
+
+目前損益
+
+報酬率
+
+Only calculate market-value-dependent fields when market data is available.
+
+Provide:
+
+`編輯持倉`
+
+Users can update:
+
+Quantity
+
+AverageCost
+
+A tracked product without a position should show something like:
+
+尚未設定持倉
+
+[ 設定持倉 ]
+
+---
+
+# 19. AI Recommendations
+
+Below the position section, display each AI provider independently.
+
+Example:
+
+DeepSeek
+
+HOLD
+
+Confidence: 76%
+
+Root Event
+Bullish
+
+Market Regime
+Bull
+
+Trend
+Bullish
+
+Volume
+Warning
+
+Risk / Reward
+Neutral
+
+主要原因
+
+- 中期多頭結構仍完整
+- Root Event 尚未失效
+- 創高但量能下降
+
+風險
+
+- 短線波動提高
+- 成交量未同步放大
+
+下一步
+
+40.20 + 放量
+→ HOLD
+
+37.80 跌破
+→ REDUCE 1
+
+36.90 跌破
+→ EXIT
+
+---
+
+# 20. AI Analysis Framework
+
+AI providers should not simply receive a vague prompt such as:
+
+"You are a top stock analyst. Tell me whether I should buy or sell."
+
+Create a reusable analysis framework.
+
+Each AI analysis should consider:
+
+1. Root Event
+2. Market Regime
+3. Trend
+4. Momentum
+5. Volume / Price
+6. Institutional / Fund Flow data when available
+7. Current Position
+8. Risk / Reward
+9. Previous AI Decision
+10. Invalidation Conditions
+
+The final output must choose exactly one:
+
+ADD
+
+HOLD
+
+REDUCE
+
+EXIT
+
+ADD and REDUCE may include quantity.
+
+Example:
+
+REDUCE 2
+
+---
+
+# 21. Root Event
+
+Root Event means:
+
+The primary underlying event, narrative, macro factor, earnings development, policy development, or market catalyst currently driving the investment thesis.
+
+The AI should determine:
+
+- What is driving the market/product?
+- Is it confirmed or expected?
+- Is it bullish, bearish, or neutral?
+- Is it still active?
+- Has it potentially been priced in?
+- What would invalidate it?
+
+The AI must distinguish between:
+
+confirmed facts
+
+and
+
+market expectations.
+
+Do not allow the model to invent Root Events when supporting data is unavailable.
+
+---
+
+# 22. Position-Aware Analysis
+
+When the user has a position, provide it to the AI.
+
+Example:
+
+Product:
+00631L
+
+Quantity:
+6
+
+Average Cost:
+33.74
+
+Current Return:
++16.1%
+
+However:
+
+Current unrealized profit alone must NEVER be treated as sufficient reason to sell.
+
+The AI should evaluate the position based on the current market opportunity and risk.
+
+---
+
+# 23. Leveraged ETF Rule
+
+For leveraged ETFs such as 00631L, analysis instructions should explicitly consider:
+
+- leverage
+- volatility
+- drawdown
+- market regime
+- prolonged sideways-market decay
+- underlying index trend
+- increased downside sensitivity
+
+Do not analyze leveraged ETFs exactly like ordinary stocks.
+
+---
+
+# 24. AI Provider Architecture
+
+Do NOT tightly couple the application to DeepSeek.
+
+Create an abstraction such as:
+
+IAIAnalyst
+
+Conceptual interface:
+
+AnalyzeAsync(
+    MarketContext market,
+    PositionContext position,
+    AnalysisContext context,
+    CancellationToken cancellationToken
+)
+
+Initial implementation:
+
+DeepSeekAnalyst
+
+Future implementations may include:
+
+OpenAIAnalyst
+
+ClaudeAnalyst
+
+GeminiAnalyst
+
+GrokAnalyst
+
+The core domain must not care which external LLM provider generated the analysis.
+
+---
+
+# 25. Standardized AI Result
+
+Normalize every AI provider response into a common internal structure.
+
+Conceptual example:
+
+{
+  "provider": "deepseek",
+  "model": "deepseek-reasoner",
+
+  "action": "HOLD",
+  "quantity": 0,
+  "confidence": 76,
+
+  "rootEvent": {
+    "direction": "BULLISH",
+    "status": "ACTIVE",
+    "summary": "..."
+  },
+
+  "marketRegime": "BULL",
+
+  "trend": "BULLISH",
+
+  "momentum": "POSITIVE",
+
+  "volume": "WARNING",
+
+  "riskReward": "NEUTRAL",
+
+  "reasons": [
+    "...",
+    "...",
+    "..."
+  ],
+
+  "risks": [
+    "...",
+    "..."
+  ],
+
+  "invalidation": "...",
+
+  "nextActions": [
+    {
+      "condition": "...",
+      "action": "HOLD",
+      "quantity": 0
+    }
+  ]
+}
+
+Do not expose raw provider responses directly to React.
+
+Parse and normalize them first.
+
+Store the raw response separately if useful for debugging.
+
+---
+
+# 26. AI Prompt / Skill Architecture
+
+Do not put the entire investment methodology inside one giant hardcoded string.
+
+Design reusable AI instruction/skill components.
+
+Suggested structure:
+
+AI/
+
+Skills/
+
+    root-event.md
+
+    market-regime.md
+
+    trend-analysis.md
+
+    momentum.md
+
+    volume-price.md
+
+    institutional-flow.md
+
+    leveraged-etf.md
+
+    position-sizing.md
+
+    risk-management.md
+
+    decision-engine.md
+
+The application should be able to compose relevant instructions depending on the asset type and available data.
+
+Example:
+
+Normal stock:
+
+Root Event
++ Market Regime
++ Trend
++ Volume
++ Position
++ Risk
++ Decision Engine
+
+Leveraged ETF:
+
+Root Event
++ Market Regime
++ Trend
++ Volume
++ Leveraged ETF Rules
++ Position
++ Risk
++ Decision Engine
+
+Keep skill loading/composition simple for V1.
+
+Do not build a complex plugin system yet.
+
+---
+
+# 27. Decision Rules
+
+The AI decision engine should follow these principles:
+
+1. Do not sell solely because the position is profitable.
+
+2. Allow profitable positions to continue when the thesis and trend remain valid.
+
+3. Allow partial reduction when risk/reward deteriorates.
+
+4. Exit when the underlying thesis or defined invalidation condition fails.
+
+5. Do not average down solely because price fell.
+
+6. ADD requires new positive evidence.
+
+7. Position size must be considered when position information exists.
+
+8. Previous AI decisions should be considered to reduce unnecessary back-and-forth trading.
+
+9. Do not attempt to perfectly predict tops or bottoms.
+
+10. If evidence is insufficient, clearly express lower confidence.
+
+---
+
+# 28. Bull Case / Bear Case
+
+Before making the final decision, require the analysis to consider both sides.
+
+Bull Case:
+
+Why should the user continue holding or add?
+
+Bear Case:
+
+Why should the user reduce or exit?
+
+The final decision should be based on the relative evidence rather than prompt wording.
+
+This is intended to reduce confirmation bias.
+
+---
+
+# 29. Invalidation
+
+Every AI recommendation should answer:
+
+> What would make this analysis wrong?
+
+Example:
+
+Current recommendation:
+
+HOLD
+
+Invalidation:
+
+Major support breaks with increasing volume while the primary bullish Root Event also weakens.
+
+The invalidation condition should be stored with the analysis result.
+
+---
+
+# 30. Analysis History
+
+Never overwrite an old AI analysis.
+
+Every analysis should create a new history record.
+
+Store enough information to reconstruct:
+
+- what the AI knew
+- what market data was provided
+- what position was provided
+- what previous decision existed
+- what recommendation was returned
+
+Suggested fields:
+
+AIAnalysisResult
+
+- Id
+- UserId
+- ProductId
+- AIProviderId
+- Model
+- Action
+- Quantity
+- Confidence
+- AnalysisJson
+- InputSnapshotJson
+- RawResponse
+- CreatedAt
+
+This will later allow strategy performance evaluation.
+
+---
+
+# 31. Future AI Performance Evaluation
+
+Do NOT build the complete backtesting system in V1.
+
+However, architecture should allow future questions such as:
+
+"If I followed every DeepSeek signal, what would my return have been?"
+
+Potential future metrics:
+
+- AI strategy return
+- Buy-and-hold return
+- Maximum drawdown
+- Win rate
+- Average gain
+- Average loss
+- Profit factor
+
+Do not implement fake statistics.
+
+Only prepare the data model so they can be calculated later.
+
+---
+
+# 32. Market Data Architecture
+
+Create:
+
+IMarketDataProvider
+
+The business layer must not depend directly on one market-data vendor.
+
+Conceptually:
+
+GetQuoteAsync()
+
+GetHistoricalPricesAsync()
+
+GetTechnicalContextAsync()
+
+GetInstitutionalFlowAsync()
+
+GetRelevantEventsAsync()
+
+Not all methods need real implementations in V1.
+
+If no real market-data API credentials exist, create:
+
+MockMarketDataProvider
+
+The application must remain fully usable for development using mock data.
+
+---
+
+# 33. Database
+
+Use MySQL + Dapper.
+
+Do NOT use Entity Framework.
+
+Create schema/migrations for at least:
+
+Users
+
+Products
+
+UserWatchlists
+
+UserPositions
+
+AIProviders
+
+AIAnalysisResults
+
+Use:
+
+- primary keys
+- foreign keys
+- unique constraints
+- useful indexes
+- UTC timestamps
+
+Important constraints:
+
+UserWatchlists:
+
+Unique(UserId, ProductId)
+
+UserPositions:
+
+Unique(UserId, ProductId)
+
+AIProviders should support:
+
+- Id
+- Code
+- DisplayName
+- IsEnabled
+- SortOrder
+
+This enables dynamic AI columns.
+
+---
+
+# 34. FastEndpoints API
+
+Use FastEndpoints.
+
+Provide clean REST endpoints.
+
+At minimum:
+
+## Current User
+
+GET /api/me
+
+## Watchlist
+
+GET /api/watchlist
+
+POST /api/watchlist
+
+DELETE /api/watchlist/{productId}
+
+## Products
+
+GET /api/products/search?q=
+
+GET /api/products/{symbol}
+
+## Position
+
+GET /api/products/{symbol}/position
+
+PUT /api/products/{symbol}/position
+
+## AI Analysis
+
+GET /api/products/{symbol}/analysis
+
+POST /api/products/{symbol}/analysis
+
+## Analysis History
+
+GET /api/products/{symbol}/analysis/history
+
+## AI Providers
+
+GET /api/ai/providers
+
+The exact design may be improved if there is a cleaner FastEndpoints pattern.
+
+---
+
+# 35. Home API Optimization
+
+Avoid requiring React to make one API request per product per AI provider.
+
+Create a watchlist response optimized for the home table.
+
+Conceptually:
+
+GET /api/watchlist
+
+Response:
+
+[
+  {
+    "product": {
+      "id": 1,
+      "symbol": "00631L",
+      "name": "元大台灣50正2"
+    },
+
+    "signals": [
+      {
+        "provider": "deepseek",
+        "displayName": "DeepSeek",
+        "action": "HOLD",
+        "quantity": 0,
+        "changed": false,
+        "analyzedAt": "..."
+      },
+
+      {
+        "provider": "openai",
+        "displayName": "GPT",
+        "action": "REDUCE",
+        "quantity": 1,
+        "changed": true,
+        "analyzedAt": "..."
+      }
+    ],
+
+    "lastAnalyzedAt": "..."
+  }
+]
+
+This should allow the home page to render with one primary request.
+
+---
+
+# 36. Frontend Pages
+
+Create at least:
+
+/login
+
+/
+
+/products/{symbol}
+
+The `/` route is the tracked-product AI signal table.
+
+Keep navigation minimal.
+
+---
+
+# 37. Frontend Components
+
+Suggested components:
+
+AppShell
+
+Header
+
+UserMenu
+
+WatchlistTable
+
+WatchlistRow
+
+AISignalBadge
+
+RelativeTime
+
+AddProductDialog
+
+ProductHeader
+
+PositionSection
+
+AIAnalysisList
+
+AIAnalysisCard
+
+LoadingState
+
+EmptyState
+
+ErrorState
+
+Do not create hundreds of tiny components unnecessarily.
+
+---
+
+# 38. Empty State
+
+If the user has no tracked products:
+
+Market Signal AI
+
+目前沒有追蹤商品
+
+加入你想讓 AI 分析的股票、ETF 或其他投資商品。
+
+[ + 加入第一個商品 ]
+
+Keep it simple.
+
+---
+
+# 39. Loading State
+
+Use skeleton rows for the watchlist table.
+
+Avoid full-screen loading spinners whenever possible.
+
+---
+
+# 40. Error Handling
+
+The application should gracefully handle:
+
+- AI provider unavailable
+- AI timeout
+- invalid AI response
+- market data unavailable
+- Google authentication failure
+- database failure
+
+One failed AI provider must NOT prevent other AI provider results from being displayed.
+
+Example:
+
+DeepSeek
+HOLD
+
+GPT
+暫時無法分析
+
+Claude
+REDUCE 1
+
+The page should still work.
+
+---
+
+# 41. Security
+
+Never commit:
+
+- Google OAuth secrets
+- DeepSeek API keys
+- future AI API keys
+- database passwords
+
+Use environment variables/configuration.
+
+Provide:
+
+.env.example
+
+Do not put real credentials inside it.
+
+Validate authentication and user ownership for watchlists and positions.
+
+A user must never be able to access another user's private watchlist/position through changing IDs in a URL.
+
+---
+
+# 42. Docker
+
+Provide Docker support.
+
+Create:
+
+Backend Dockerfile
+
+Frontend Dockerfile if appropriate
+
+docker-compose.yml
+
+Local docker-compose should support:
+
+- backend
+- frontend
+- MySQL
+
+Development should also be possible without Docker if dependencies are installed locally.
+
+---
+
+# 43. Google Cloud Readiness
+
+Prepare the project so the backend can later run on Cloud Run.
+
+Requirements:
+
+- stateless API
+- configuration through environment variables
+- no dependency on local filesystem persistence
+- health endpoint
+- structured logging
+- container support
+
+Add:
+
+GET /health
+
+Do not implement unnecessary GCP infrastructure yet.
+
+---
+
+# 44. UI Design
+
+Use a modern minimal dark interface.
+
+Visual direction:
+
+- dark neutral background
+- slightly elevated table surface
+- restrained borders
+- compact badges
+- comfortable row height
+- strong typography hierarchy
+- subtle hover states
+- minimal animation
+
+Avoid:
+
+- giant cards
+- gradients everywhere
+- glowing neon trading UI
+- information overload
+- unnecessary charts
+- excessive financial metrics
+
+The application should feel calm and analytical.
+
+---
+
+# 45. Responsive Design
+
+Desktop should use the full signal table.
+
+For smaller screens, preserve the same information hierarchy.
+
+Do not simply squeeze seven columns into an unreadable table.
+
+For mobile, it is acceptable to horizontally scroll the AI provider columns while keeping the product column identifiable.
+
+Do not redesign mobile into a completely different product.
+
+---
+
+# 46. V1 Development Phases
+
+Implement incrementally.
+
+## Phase 1
+
+Create:
+
+- repository structure
+- C# solution
+- backend projects
+- React frontend
+- MySQL schema
+- Dapper infrastructure
+- seed products
+- seed AI providers
+- mock user
+- mock AI signals
+- home signal table
+- product detail shell
+
+Goal:
+
+The complete core UI flow should be visible without external credentials.
+
+## Phase 2
+
+Implement:
+
+- Google authentication
+- user persistence
+- watchlist management
+- add product dialog
+- remove tracked product
+- position editing
+
+## Phase 3
+
+Implement:
+
+- IAIAnalyst
+- DeepSeekAnalyst
+- structured AI response
+- skill composition
+- analysis persistence
+- signal history
+- signal change detection
+
+## Phase 4
+
+Implement:
+
+- detailed AI analysis UI
+- Root Event display
+- Market Regime
+- Bull Case / Bear Case
+- Invalidation
+- Next Actions
+
+## Phase 5
+
+Implement:
+
+- Docker cleanup
+- configuration cleanup
+- health checks
+- logging
+- GCP deployment readiness
+
+Do NOT attempt to implement every future feature at once.
+
+---
+
+# 47. Initial Seed Data
+
+For development only, seed example products such as:
+
+00631L
+元大台灣50正2
+
+5871
+中租-KY
+
+2330
+台積電
+
+Seed AI providers:
+
+DeepSeek
+
+OpenAI
+
+Claude
+
+Seed sample signals so the UI can be tested immediately.
+
+These are MOCK UI data only and must not be presented as real investment recommendations.
+
+---
+
+# 48. README
+
+Create a useful README containing:
+
+- project purpose
+- architecture
+- technology stack
+- local setup
+- database setup
+- Docker setup
+- environment variables
+- backend commands
+- frontend commands
+- mock mode
+- Google OAuth configuration placeholder
+- DeepSeek configuration placeholder
+- future GCP deployment notes
+
+---
+
+# 49. Coding Standards
+
+Prefer:
+
+- simple readable code
+- explicit naming
+- small focused services
+- dependency injection
+- CancellationToken
+- async database operations
+- parameterized Dapper SQL
+- typed DTOs
+- centralized error handling
+- structured
