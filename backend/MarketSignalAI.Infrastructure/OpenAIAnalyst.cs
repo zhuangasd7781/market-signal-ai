@@ -13,6 +13,7 @@ public sealed class OpenAIAnalyst(HttpClient http, OpenAIAnalystOptions options)
     public string Model => options.Model;
     public TimeSpan Timeout => TimeSpan.FromSeconds(options.TimeoutSeconds);
     public string ReasoningEffort => options.ReasoningEffort;
+    public IAIAnalyst WithModel(string model) => new OpenAIAnalyst(http,new OpenAIAnalystOptions { Enabled=options.Enabled,ApiKey=options.ApiKey,Model=model,ReasoningEffort=options.ReasoningEffort,TimeoutSeconds=options.TimeoutSeconds,MaxOutputTokens=options.MaxOutputTokens });
     public async Task<AnalystResult> AnalyzeAsync(MarketContext context, CancellationToken ct)
     {
         options.Validate();

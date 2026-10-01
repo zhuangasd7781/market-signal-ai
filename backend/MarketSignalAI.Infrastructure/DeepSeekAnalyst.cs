@@ -11,6 +11,7 @@ public sealed class DeepSeekAnalyst(HttpClient http, DeepSeekAnalystOptions opti
     public string ProviderCode => "deepseek";
     public string Model => options.Model;
     public TimeSpan Timeout => TimeSpan.FromSeconds(options.TimeoutSeconds);
+    public IAIAnalyst WithModel(string model) => new DeepSeekAnalyst(http,new DeepSeekAnalystOptions { Enabled=options.Enabled,ApiKey=options.ApiKey,Model=model,BaseUrl=options.BaseUrl,TimeoutSeconds=options.TimeoutSeconds,MaxOutputTokens=options.MaxOutputTokens });
     public async Task<AnalystResult> AnalyzeAsync(MarketContext context, CancellationToken ct)
     {
         options.Validate();

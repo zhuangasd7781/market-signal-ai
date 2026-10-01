@@ -39,6 +39,8 @@ public sealed class LiveProviderFlowTests
             .UseSetting("DeepSeek:Enabled", "true").UseSetting("DeepSeek:ApiKey", "test-deepseek-key")
             .ConfigureTestServices(s =>
             {
+                s.RemoveAll<IAIProviderSettingsStore>();
+                s.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore([new("openai",true,"gpt-6.1-sol"),new("deepseek",true,"deepseek-v4-pro"),new("claude",true,"mock-v1")]));
                 s.RemoveAll<IMarketDataProvider>(); s.AddSingleton<IMarketDataProvider, Market>();
                 s.AddHttpClient<OpenAIAnalyst>().ConfigurePrimaryHttpMessageHandler(() => new OpenAIAnalystTests.Handler((_, _) => Task.FromResult(failed == "openai" ? new HttpResponseMessage(HttpStatusCode.TooManyRequests) : OpenAIAnalystTests.Json(OpenAIAnalystTests.Response()))));
                 s.AddHttpClient<DeepSeekAnalyst>().ConfigurePrimaryHttpMessageHandler(() => new OpenAIAnalystTests.Handler((_, _) => Task.FromResult(failed == "deepseek" ? new HttpResponseMessage(HttpStatusCode.TooManyRequests) : OpenAIAnalystTests.Json(DeepSeekAnalystTests.Response()))));

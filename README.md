@@ -2,7 +2,7 @@
 
 以「追蹤商品 × AI 訊號」為核心的投資訊號看板。首頁僅呈現各 AI 的獨立訊號；持倉、推論與歷史放在商品詳情頁。不排名 AI，也不執行交易。
 
-目前完成 `planning.txt` 的 **Phase 1**，並加入 Yahoo 台股行情、MySQL 快照、手動分析與同程序排程。已加入可選的 OpenAI Responses API（預設 `gpt-6.1-sol`、reasoning `medium`）與 DeepSeek 官方 API；未啟用時維持 `mock-v1`。Google OAuth 尚未實作。
+目前完成 `planning.txt` 的 **Phase 1**，並加入 Yahoo 台股行情、MySQL 快照、手動分析與同程序排程。已加入可選的 OpenAI Responses API（預設 `gpt-6.1-sol`、reasoning `medium`）與 DeepSeek 官方 API；停用的 Provider 不執行分析；Claude 仍保留 Mock。Google OAuth 尚未實作。
 
 ## 快速開始：Docker
 
@@ -166,3 +166,6 @@ npm run dev
 
 
 TASK 1 歷史修正：Taiwan50 mapping 仍為 ^TSE50；Yahoo 日價不足時採用明確標示的 TWSE TAI50I close-only 歷史。本次取得 21 筆並完成 GPT / DeepSeek 真實驗證，來源與品質保存於 InputSnapshot。上述一筆日价是先前驗證記錄；目前設計、證據與限制見 [Taiwan50 歷史修正](docs/tse50-history.md)。
+
+
+AI Provider 設定：開啟 `/settings/ai` 可以儲存 Enabled / Configured Model，API Key 仍由 User Secrets 取得。Force 可用 providers 指定子集合，省略時只執行 Enabled；Disabled 不會產生 Mock 結果或消耗 Token。DB 設定優先於啟動時的預設 Enabled / Model，詳見 [Provider 設定與真實驗證](docs/ai-provider-settings.md)。

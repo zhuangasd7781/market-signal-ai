@@ -14,6 +14,7 @@ builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o => o.DocumentSettings = s => s.OperationProcessors.Add(new DemoMutationHeaderProcessor()));
 builder.Services.AddSingleton<ICurrentUser, DemoCurrentUser>();
 builder.Services.AddScoped<SignalService>();
+builder.Services.AddScoped<AIProviderSettingsService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpClient<IMarketDataProvider, YahooMarketDataProvider>(client =>
 {
@@ -25,26 +26,27 @@ builder.Services.AddScoped<IMarketScheduleExecutor, MarketScheduleExecutor>();
 var openAI = builder.Configuration.GetSection("OpenAI").Get<OpenAIAnalystOptions>() ?? new();
 if (string.IsNullOrWhiteSpace(openAI.ApiKey)) openAI.ApiKey = builder.Configuration["OPENAI_API_KEY"] ?? "";
 builder.Services.AddSingleton(openAI);
-if (openAI.Enabled)
 {
     builder.Services.AddHttpClient<OpenAIAnalyst>(client => client.Timeout = Timeout.InfiniteTimeSpan);
     builder.Services.AddTransient<IAIAnalyst>(sp => sp.GetRequiredService<OpenAIAnalyst>());
 }
-else builder.Services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("openai"));
+
 var deepSeek = builder.Configuration.GetSection("DeepSeek").Get<DeepSeekAnalystOptions>() ?? new();
 builder.Services.AddSingleton(deepSeek);
-if (deepSeek.Enabled)
 {
     builder.Services.AddHttpClient<DeepSeekAnalyst>(client => client.Timeout = Timeout.InfiniteTimeSpan);
     builder.Services.AddTransient<IAIAnalyst>(sp => sp.GetRequiredService<DeepSeekAnalyst>());
 }
-else builder.Services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("deepseek"));
+
 builder.Services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("claude"));
+var providerDefaults = new AIProviderSetting[] { new("openai",openAI.Enabled,openAI.Model),new("deepseek",deepSeek.Enabled,deepSeek.Model),new("claude",false,"mock-v1") };
 var storage = builder.Configuration["Storage:Provider"] ?? "Memory";
 if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 {
     var connectionString = builder.Configuration.GetConnectionString("MySql")
         ?? throw new InvalidOperationException("ConnectionStrings:MySql is required.");
+    builder.Services.AddSingleton(new MySqlAIProviderSettingsStore(connectionString,providerDefaults));
+    builder.Services.AddSingleton<IAIProviderSettingsStore>(sp=>sp.GetRequiredService<MySqlAIProviderSettingsStore>());
     builder.Services.AddSingleton(new MySqlSignalStore(connectionString));
     builder.Services.AddSingleton<ISignalStore>(sp => sp.GetRequiredService<MySqlSignalStore>());
     builder.Services.AddSingleton(new MySqlMarketReferenceStore(connectionString));
@@ -55,6 +57,7 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 }
 else if (storage.Equals("Memory", StringComparison.OrdinalIgnoreCase))
 {
+    builder.Services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore(providerDefaults));
     builder.Services.AddSingleton<MemorySignalStore>();
     builder.Services.AddSingleton<ISignalStore>(sp => sp.GetRequiredService<MemorySignalStore>());
     builder.Services.AddSingleton<IMarketStore, MemoryMarketStore>();
@@ -72,6 +75,8 @@ if (app.Services.GetService<MySqlMarketReferenceStore>() is { } referenceSql)
     await referenceSql.MigrateAsync(app.Lifetime.ApplicationStopping);
     await referenceSql.SeedAsync(app.Lifetime.ApplicationStopping);
 }
+if(app.Services.GetService<MySqlAIProviderSettingsStore>() is {} providerSql)
+    await providerSql.MigrateAndSeedAsync(app.Lifetime.ApplicationStopping);
 app.Use(async (context, next) =>
 {
     context.Response.Headers.CacheControl = "no-store";

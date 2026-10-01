@@ -42,16 +42,18 @@ public interface IAIAnalyst
     string? Model => null;
     string? ReasoningEffort => null;
     TimeSpan Timeout => TimeSpan.FromSeconds(180);
+    IAIAnalyst WithModel(string model) => this;
     Task<AnalystResult> AnalyzeAsync(MarketContext context, CancellationToken ct);
 }
 public sealed record ProviderRunResult(string Provider, string Status, long? AnalysisId, string? Error,
-    string? Model, Analysis? Result, TokenUsage? Usage = null);
+    string? Model, Analysis? Result, TokenUsage? Usage = null, string? ConfiguredModel = null);
 public sealed record ProductRunResult(string Symbol, long SnapshotId, IReadOnlyList<ProviderRunResult> Providers);
 public sealed record ProductRunFailure(string Symbol, string Error);
 public sealed record BatchRunResult(IReadOnlyList<ProductRunResult> Completed, IReadOnlyList<ProductRunFailure> Failed);
 public interface IMarketAnalysisRunner
 {
     Task<ProductRunResult> RunProductAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate = null);
+    Task<ProductRunResult> RunProductAsync(string symbol, IReadOnlyList<string>? providers, CancellationToken ct) => RunProductAsync(symbol,ct);
     Task<BatchRunResult> RunAllAsync(CancellationToken ct, DateOnly? expectedTradeDate = null);
 }
 public interface IMarketScheduleExecutor

@@ -1,4 +1,5 @@
 using FastEndpoints;
+using System.Text.Json;
 using MarketSignalAI.Application;
 using MarketSignalAI.Domain;
 
@@ -21,11 +22,19 @@ public sealed class MarketEndpoint(SignalService service, IMarketStore market) :
     }
 }
 
+public sealed class ForceAnalysisRequest { public string[]? Providers { get; set; } }
 public sealed class ForceAnalysisEndpoint(IMarketAnalysisRunner runner) : EndpointWithoutRequest<ProductRunResult>
 {
-    public override void Configure() { Post("/api/products/{symbol}/analysis/force"); AllowAnonymous(); }
+    public override void Configure() { Post("/api/products/{symbol}/analysis/force"); AllowAnonymous(); Description(b=>b.Accepts<ForceAnalysisRequest>(true,"application/json","*/*")); }
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendAsync(await runner.RunProductAsync(Route<string>("symbol") ?? throw new ArgumentException("缺少商品代碼。"), ct), cancellation: ct);
+        ForceAnalysisRequest? req=null;
+        if(HttpContext.Request.ContentLength is > 0 || HttpContext.Request.Headers.ContainsKey("Transfer-Encoding"))
+        {
+            if(!HttpContext.Request.HasJsonContentType())throw new ArgumentException("Force request body must use application/json.");
+            try { req=await HttpContext.Request.ReadFromJsonAsync<ForceAnalysisRequest>(ct) ?? throw new ArgumentException("Force request must be a JSON object."); }
+            catch(JsonException) { throw new ArgumentException("Force request must be valid JSON with a providers array."); }
+        }
+        await SendAsync(await runner.RunProductAsync(Route<string>("symbol") ?? throw new ArgumentException("缺少商品代碼。"), req?.Providers, ct), cancellation: ct);
     }
 }

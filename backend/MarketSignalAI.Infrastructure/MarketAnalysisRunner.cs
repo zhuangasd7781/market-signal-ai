@@ -7,15 +7,33 @@ namespace MarketSignalAI.Infrastructure;
 
 public sealed class MarketAnalysisRunner(
     IMarketDataProvider marketData, IMarketStore marketStore, ISignalStore signals,
-    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null) : IMarketAnalysisRunner
+    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null, IAIProviderSettingsStore? settings = null) : IMarketAnalysisRunner
 {
     public Task<ProductRunResult> RunProductAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate = null) =>
         RunProductCoreAsync(symbol, ct, expectedTradeDate, new ReferenceDataCache(marketData));
-    private async Task<ProductRunResult> RunProductCoreAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate, ReferenceDataCache referenceCache)
+    public Task<ProductRunResult> RunProductAsync(string symbol,IReadOnlyList<string>? providers,CancellationToken ct) =>
+        RunProductCoreAsync(symbol,ct,null,new ReferenceDataCache(marketData),providers);
+    private async Task<ProductRunResult> RunProductCoreAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate, ReferenceDataCache referenceCache, IReadOnlyList<string>? requested = null)
     {
         var product = await signals.GetProductAsync(symbol, "TW", ct) ?? throw new KeyNotFoundException("找不到台股商品。");
         var users = await marketStore.GetTrackingUserIdsAsync(product.Id, ct);
         if (users.Count == 0) throw new InvalidOperationException("請先追蹤此商品。");
+        var enabled = await signals.GetProvidersAsync(ct);
+        HashSet<string>? selection=null;
+        if(requested is not null)
+        {
+            if(requested.Count==0 || requested.Any(x=>string.IsNullOrWhiteSpace(x) || !enabled.Any(p=>string.Equals(p.Code,x,StringComparison.OrdinalIgnoreCase))) || requested.Distinct(StringComparer.OrdinalIgnoreCase).Count()!=requested.Count)
+                throw new ArgumentException("providers must contain unique known provider codes.");
+            selection=requested.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        var plans=new Dictionary<long,IReadOnlyList<AIProviderSetting>?>();
+        foreach(var userId in users)
+        {
+            var rows=settings is null ? null : await settings.GetAsync(userId,ct);
+            if(selection is not null && rows is not null && rows.Any(x=>selection.Contains(x.Provider) && !x.Enabled))
+                throw new ArgumentException("A requested provider is disabled. Enable it in AI settings first.");
+            plans[userId]=rows;
+        }
         logger.LogInformation("Product fetching {Symbol}", symbol);
         var snapshot = await marketData.GetSnapshotAsync(product.Symbol, ct);
         if (snapshot.Symbol != product.Symbol) throw new InvalidDataException("Market symbol mismatch.");
@@ -33,7 +51,6 @@ public sealed class MarketAnalysisRunner(
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex) { logger.LogWarning(ex, "Historical prices unavailable {Symbol}", symbol); history = []; }
 
-        var enabled = await signals.GetProvidersAsync(ct);
         var adapters = analysts.ToDictionary(x => x.ProviderCode, StringComparer.OrdinalIgnoreCase);
         var outcomes = new List<ProviderRunResult>();
         foreach (var userId in users)
@@ -54,7 +71,9 @@ public sealed class MarketAnalysisRunner(
             var context = new MarketContext(product, snapshot, history, position, null)
             { MarketReferences = referenceContexts.ToArray(), PreviousDecisions = prior };
             var sharedInput = JsonSerializer.Deserialize<JsonElement>(AnalysisProtocol.Input(context));
-            foreach (var provider in enabled)
+            var providerSettings=plans[userId];
+            foreach (var provider in enabled.Where(p=>(selection is null || selection.Contains(p.Code)) &&
+                (providerSettings is null || providerSettings.Any(x=>x.Provider==p.Code && x.Enabled))))
             {
                 ct.ThrowIfCancellationRequested();
                 if (!adapters.TryGetValue(provider.Code, out var analyst))
@@ -63,6 +82,8 @@ public sealed class MarketAnalysisRunner(
                     logger.LogWarning("AI analysis failed {Symbol} {Provider}: adapter unavailable", symbol, provider.Code);
                     continue;
                 }
+                var configured=providerSettings?.Single(x=>x.Provider==provider.Code);
+                if(configured is not null)analyst=analyst.WithModel(configured.ConfiguredModel);
                 logger.LogInformation("AI analysis started {Symbol} {Provider} {UserId}", symbol, provider.Code, userId);
                 try
                 {
@@ -70,10 +91,10 @@ public sealed class MarketAnalysisRunner(
                     timeout.CancelAfter(analyst.Timeout);
                     var answer = await analyst.AnalyzeAsync(context, timeout.Token);
                     AnalysisResultValidator.Validate(answer);
-                    var input = JsonSerializer.Serialize(new { isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
+                    var input = JsonSerializer.Serialize(new { configuredModel = configured?.ConfiguredModel ?? analyst.Model, isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
                     var savedAnalysis = await marketStore.SaveAnalysisAsync(new(0, userId, product.Id, provider.Id,
                         answer.Model, answer.Analysis, input, answer.RawResponse, DateTime.UtcNow, answer.Usage), ct);
-                    outcomes.Add(new(provider.Code, "COMPLETED", savedAnalysis.Id, null, answer.Model, answer.Analysis, answer.Usage));
+                    outcomes.Add(new(provider.Code, "COMPLETED", savedAnalysis.Id, null, answer.Model, answer.Analysis, answer.Usage, configured?.ConfiguredModel ?? analyst.Model));
                     logger.LogInformation("AI analysis completed {Symbol} {Provider} {AnalysisId} {Model} {InputTokens} {OutputTokens}",
                         symbol, provider.Code, savedAnalysis.Id, answer.Model, answer.Usage?.InputTokens, answer.Usage?.OutputTokens);
                 }
@@ -82,7 +103,7 @@ public sealed class MarketAnalysisRunner(
                 {
                     var error = ex is OperationCanceledException ? "AI timeout." : ex is AIProviderException ? ex.Message : "AI analysis failed.";
                     var usage = (ex as AIProviderException)?.Usage;
-                    outcomes.Add(new(provider.Code, "FAILED", null, error, analyst.Model, null, usage));
+                    outcomes.Add(new(provider.Code, "FAILED", null, error, analyst.Model, null, usage, configured?.ConfiguredModel ?? analyst.Model));
                     logger.LogError(ex, "AI analysis failed {Symbol} {Provider} {UserId} {InputTokens} {OutputTokens}",
                         symbol, provider.Code, userId, usage?.InputTokens, usage?.OutputTokens);
                     try
