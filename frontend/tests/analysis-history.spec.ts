@@ -27,6 +27,7 @@ test('history table compares models and expands saved evidence without triggerin
  await expect(table.getByText('investment-analysis-v2')).toBeVisible();
  await expect(page.getByText('history-only-reason')).toHaveCount(0);
  await page.getByRole('button',{name:'展開分析 101',exact:true}).click();
+ await expect.poll(() => page.locator('.history-scroll').evaluate(e => e.scrollLeft)).toBe(0);
  await expect(page.getByText('history-only-reason')).toBeVisible();
  await expect(page.getByText('history-only-invalidation')).toBeVisible();
  await expect(page.getByText(/UNDERLYING.*Taiwan50/)).toBeVisible();
@@ -39,6 +40,10 @@ test('history table compares models and expands saved evidence without triggerin
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await expect(page.locator('.history-scroll')).toBeVisible();
  await page.getByRole('button',{name:'收起分析 101',exact:true}).click();
+ await expect(page.getByRole('button',{name:'展開分析 101'})).toHaveAttribute('aria-expanded','false');
+ await page.getByRole('button',{name:'展開分析 101',exact:true}).click();
+ await expect.poll(() => page.locator('.history-scroll').evaluate(e => e.scrollLeft)).toBe(0);
+ await page.getByRole('button',{name:'收起詳細分析 101',exact:true}).click();
  await expect(page.getByRole('button',{name:'展開分析 101'})).toHaveAttribute('aria-expanded','false');
  expect(force).toBe(0);
 });
