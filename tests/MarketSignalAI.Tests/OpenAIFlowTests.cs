@@ -110,10 +110,19 @@ public sealed class OpenAIFlowTests
             Assert.Equal(1, await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM AIProviderFailures WHERE Model='gpt-6.1-sol' AND InputTokens=1234 AND OutputTokens=567"));
             Assert.Equal(1, await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM AIAnalysisUsage WHERE InputTokens=1234 AND OutputTokens=567"));
             Assert.Equal(1, await db.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM AIAnalysisResults WHERE Model='gpt-6.1-sol'"));
+            var settingDefaults=new AIProviderSetting[]{new("openai",true,"gpt-6.1-sol"),new("deepseek",true,"deepseek-v4-pro"),new("claude",false,"mock-v1")};
+            var providerSettings=new MySqlAIProviderSettingsStore(connection,settingDefaults);
+            await providerSettings.MigrateAndSeedAsync(default);
+            await providerSettings.SaveAsync(1,new("openai",false,"updated-model"),default);
+            var settingsRestarted=new MySqlAIProviderSettingsStore(connection,settingDefaults);
+            await settingsRestarted.MigrateAndSeedAsync(default);
+            var persisted=Assert.Single(await settingsRestarted.GetAsync(1,default),x=>x.Provider=="openai");
+            Assert.False(persisted.Enabled);Assert.Equal("updated-model",persisted.ConfiguredModel);
+            Assert.True(Assert.Single(await settingsRestarted.GetAsync(2,default),x=>x.Provider=="openai").Enabled);
             // Exercise the actual MySQL trading-day mapping/upsert and tracked-product batch.
             using var scope = restarted.Services.CreateScope();
             var executor = scope.ServiceProvider.GetRequiredService<IMarketScheduleExecutor>();
-            var date = DateOnly.FromDateTime(DateTime.UtcNow);
+            var date = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,TimeZoneInfo.FindSystemTimeZoneById("Asia/Taipei")).DateTime);
             await executor.ExecuteAsync(date, true, default);
             await executor.ExecuteAsync(date, false, default);
             var store = scope.ServiceProvider.GetRequiredService<IMarketStore>();
@@ -163,6 +172,12 @@ public sealed class OpenAIFlowTests
                 ["OpenAI:Enabled"] = "true", ["OpenAI:ApiKey"] = "test-api-key"
             })).ConfigureTestServices(services =>
             {
+                services.RemoveAll<IAIProviderSettingsStore>();
+                services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore([new("openai",true,"gpt-6.1-sol"),new("deepseek",true,"test-deepseek"),new("claude",true,"mock-v1")]));
+                services.RemoveAll<IAIAnalyst>();
+                services.AddTransient<IAIAnalyst>(sp=>sp.GetRequiredService<OpenAIAnalyst>());
+                services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("deepseek"));
+                services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("claude"));
                 services.RemoveAll<IMarketDataProvider>(); services.AddSingleton<IMarketDataProvider, TestMarket>();
                 services.AddHttpClient<OpenAIAnalyst>().ConfigurePrimaryHttpMessageHandler(() => new OpenAIAnalystTests.Handler((_, _) =>
                     Task.FromResult(fail && !incomplete ? new HttpResponseMessage(HttpStatusCode.TooManyRequests) :

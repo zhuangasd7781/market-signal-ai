@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-02",
+  "branch": "feature/ai-provider-settings",
+  "baseCommit": "e1f5adf",
+  "ui": {
+    "settings": [
+      {
+        "provider": "deepseek",
+        "displayName": "DeepSeek",
+        "enabled": true,
+        "configuredModel": "deepseek-v4-pro",
+        "actualModel": "deepseek-v4-pro",
+        "isMock": false
+      },
+      {
+        "provider": "openai",
+        "displayName": "GPT",
+        "enabled": false,
+        "configuredModel": "gpt-6.1-sol",
+        "actualModel": "gpt-6.1-sol",
+        "isMock": false
+      },
+      {
+        "provider": "claude",
+        "displayName": "Claude",
+        "enabled": false,
+        "configuredModel": "mock-v1",
+        "actualModel": "mock-v1",
+        "isMock": true
+      }
+    ],
+    "settingsReloadPersists": true,
+    "modelRoundTrip": true,
+    "forceRequests": 0,
+    "pageErrors": [],
+    "mobileOverflow": false
+  },
+  "openAiOffForce": {
+    "snapshotId": 19,
+    "providers": [
+      {
+        "provider": "deepseek",
+        "status": "COMPLETED",
+        "configuredModel": "deepseek-v4-pro",
+        "model": "deepseek-v4-pro",
+        "analysisId": 71,
+        "usage": {
+          "inputTokens": 10746,
+          "outputTokens": 6485,
+          "cachedTokens": 384
+        },
+        "error": null,
+        "action": "HOLD",
+        "confidence": 55
+      }
+    ]
+  },
+  "bothEnabledDeepSeekSelectedForce": {
+    "snapshotId": 20,
+    "providers": [
+      {
+        "provider": "deepseek",
+        "status": "COMPLETED",
+        "configuredModel": "deepseek-v4-pro",
+        "model": "deepseek-v4-pro",
+        "analysisId": 72,
+        "usage": {
+          "inputTokens": 10588,
+          "outputTokens": 6763,
+          "cachedTokens": 2304
+        },
+        "error": null,
+        "action": "HOLD",
+        "confidence": 58
+      }
+    ]
+  },
+  "httpPostCalls": {
+    "openai": 0,
+    "deepseek": 2
+  },
+  "dbBefore": [
+    {
+      "lastId": 70,
+      "results": 24,
+      "provider": "claude",
+      "usageRows": 0
+    },
+    {
+      "lastId": 68,
+      "results": 22,
+      "provider": "deepseek",
+      "usageRows": 6
+    },
+    {
+      "lastId": 69,
+      "results": 24,
+      "provider": "openai",
+      "usageRows": 8
+    }
+  ],
+  "dbAfter": [
+    {
+      "lastId": 70,
+      "results": 24,
+      "provider": "claude",
+      "usageRows": 0
+    },
+    {
+      "lastId": 72,
+      "results": 24,
+      "provider": "deepseek",
+      "usageRows": 8
+    },
+    {
+      "lastId": 69,
+      "results": 24,
+      "provider": "openai",
+      "usageRows": 8
+    },
+    {
+      "id": 71,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "confidence": 55,
+      "inputTokens": 10746,
+      "cachedTokens": 384,
+      "outputTokens": 6485,
+      "configuredModel": "deepseek-v4-pro"
+    },
+    {
+      "id": 72,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "confidence": 58,
+      "inputTokens": 10588,
+      "cachedTokens": 2304,
+      "outputTokens": 6763,
+      "configuredModel": "deepseek-v4-pro"
+    },
+    {
+      "providerFailures": 2
+    }
+  ]
+}

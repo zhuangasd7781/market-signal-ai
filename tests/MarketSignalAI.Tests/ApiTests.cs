@@ -21,7 +21,14 @@ public sealed class ApiFactory(Action<IServiceCollection>? services = null) : We
         .ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Demo:Enabled"] = "true", ["Storage:Provider"] = "Memory", ["OpenAI:Enabled"] = "false"
-        })).ConfigureTestServices(s => services?.Invoke(s));
+        })).ConfigureTestServices(s => {
+            // Existing API fixtures explicitly opt into mocks, never real external requests.
+            s.RemoveAll<IAIAnalyst>();
+            foreach(var code in new[]{"openai","deepseek","claude"})s.AddSingleton<IAIAnalyst>(new MockAIAnalyst(code));
+            s.RemoveAll<IAIProviderSettingsStore>();
+            s.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore([new("openai",true,"test-openai"),new("deepseek",true,"test-deepseek"),new("claude",true,"mock-v1")]));
+            services?.Invoke(s);
+        });
 }
 
 public sealed class ApiTests
