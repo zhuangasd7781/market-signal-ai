@@ -45,6 +45,8 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 {
     var connectionString = builder.Configuration.GetConnectionString("MySql")
         ?? throw new InvalidOperationException("ConnectionStrings:MySql is required.");
+    builder.Services.AddSingleton(new MySqlAnalysisScheduleStore(connectionString));
+    builder.Services.AddSingleton<IAnalysisScheduleStore>(sp=>sp.GetRequiredService<MySqlAnalysisScheduleStore>());
     builder.Services.AddSingleton(new MySqlAIProviderSettingsStore(connectionString,providerDefaults));
     builder.Services.AddSingleton<IAIProviderSettingsStore>(sp=>sp.GetRequiredService<MySqlAIProviderSettingsStore>());
     builder.Services.AddSingleton(new MySqlSignalStore(connectionString));
@@ -57,6 +59,7 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 }
 else if (storage.Equals("Memory", StringComparison.OrdinalIgnoreCase))
 {
+    builder.Services.AddSingleton<IAnalysisScheduleStore, MemoryAnalysisScheduleStore>();
     builder.Services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore(providerDefaults));
     builder.Services.AddSingleton<MemorySignalStore>();
     builder.Services.AddSingleton<ISignalStore>(sp => sp.GetRequiredService<MemorySignalStore>());
@@ -77,6 +80,8 @@ if (app.Services.GetService<MySqlMarketReferenceStore>() is { } referenceSql)
 }
 if(app.Services.GetService<MySqlAIProviderSettingsStore>() is {} providerSql)
     await providerSql.MigrateAndSeedAsync(app.Lifetime.ApplicationStopping);
+if(app.Services.GetService<MySqlAnalysisScheduleStore>() is {} scheduleSql)
+    await scheduleSql.MigrateAndSeedAsync(app.Lifetime.ApplicationStopping);
 app.Use(async (context, next) =>
 {
     context.Response.Headers.CacheControl = "no-store";

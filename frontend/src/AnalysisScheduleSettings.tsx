@@ -1,0 +1,11 @@
+import { useEffect, useState } from 'react';
+import { api } from './api';
+import { ErrorState, LoadingState } from './components';
+type Schedule={enabled:boolean;times:string[];timezone:string;tradingDayCheck:string};
+export function AnalysisScheduleSettings(){
+ const [row,setRow]=useState<Schedule>();const [error,setError]=useState('');const [saved,setSaved]=useState('');const [busy,setBusy]=useState(false);
+ useEffect(()=>{void api<Schedule>('/settings/analysis-schedule').then(setRow).catch(e=>setError(e.message));},[]);
+ function update(patch:Partial<Schedule>){setSaved('');setRow(old=>old&&({...old,...patch}));}
+ async function save(){if(!row)return;setBusy(true);setError('');try{await api('/settings/analysis-schedule',{method:'PUT',body:JSON.stringify({enabled:row.enabled,times:row.times})});setRow(await api<Schedule>('/settings/analysis-schedule'));setSaved('分析排程已儲存');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ return <><div className="page-heading"><div><span className="eyebrow">ANALYSIS SCHEDULE</span><h1>分析排程</h1><p className="muted">時區：Asia/Taipei。休市日不執行自動分析。</p></div></div>{error&&<ErrorState message={error}/>}<p role="status">{saved}</p>{!row?!error&&<LoadingState/>:<section className="panel"><p>交易日檢查：{row.tradingDayCheck} （獨立執行）</p><form onSubmit={e=>{e.preventDefault();void save();}}><fieldset disabled={busy} style={{border:0,padding:0}}><label className="position-form">啟用自動分析<input type="checkbox" aria-label="啟用自動分析" checked={row.enabled} onChange={e=>update({enabled:e.target.checked})}/></label>{row.times.map((time,i)=><div className="position-form" key={i}><label>分析時間 {i+1}<input type="time" required aria-label={`分析時間 ${i+1}`} value={time} onChange={e=>update({times:row.times.map((t,j)=>j===i?e.target.value:t)})}/></label><button type="button" aria-label={`刪除時間 ${i+1}`} onClick={()=>update({times:row.times.filter((_,j)=>j!==i)})}>刪除</button></div>)}<div className="position-form"><button type="button" disabled={row.times.length>=24} onClick={()=>update({times:[...row.times,'09:00']})}>新增時間</button><button className="primary">儲存排程</button></div></fieldset></form><p className="small muted">儲存後下一次檢查生效。同一天相同時間只嘗試一次，重啟也不重跑。失敗請手動 Force Analysis；錯過的時間不補跑。手動分析不受此設定限制。</p></section>}</>;
+}

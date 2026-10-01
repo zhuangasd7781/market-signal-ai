@@ -119,6 +119,15 @@ public sealed class OpenAIFlowTests
             var persisted=Assert.Single(await settingsRestarted.GetAsync(1,default),x=>x.Provider=="openai");
             Assert.False(persisted.Enabled);Assert.Equal("updated-model",persisted.ConfiguredModel);
             Assert.True(Assert.Single(await settingsRestarted.GetAsync(2,default),x=>x.Provider=="openai").Enabled);
+            var schedule=new MySqlAnalysisScheduleStore(connection);
+            await schedule.MigrateAndSeedAsync(default);await schedule.SaveAsync(1,new(false,["14:20"]),default);
+            var scheduleRestarted=new MySqlAnalysisScheduleStore(connection);await scheduleRestarted.MigrateAndSeedAsync(default);
+            Assert.False((await scheduleRestarted.GetAsync(1,default)).Enabled);
+            Assert.Equal(new[]{"14:20"},(await scheduleRestarted.GetAsync(1,default)).Times);
+            var claimDate=new DateOnly(2070,1,1);
+            Assert.True(await schedule.TryClaimAsync(1,claimDate,860,default));
+            Assert.False(await scheduleRestarted.TryClaimAsync(1,claimDate,860,default));
+            Assert.True(await scheduleRestarted.TryClaimAsync(1,claimDate.AddDays(1),860,default));
             // Exercise the actual MySQL trading-day mapping/upsert and tracked-product batch.
             using var scope = restarted.Services.CreateScope();
             var executor = scope.ServiceProvider.GetRequiredService<IMarketScheduleExecutor>();

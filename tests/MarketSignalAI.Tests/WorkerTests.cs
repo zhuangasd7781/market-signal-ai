@@ -40,7 +40,7 @@ public sealed class WorkerTests
     }
 
     [Fact]
-    public async Task Worker_RetriesFailedSlot_ThenContinuesToNextSlot()
+    public async Task Worker_DoesNotRetryClaimedAnalysis_ThenContinuesToNextSlot()
     {
         var clock = new TickClock(new DateTimeOffset(2026, 10, 1, 1, 5, 0, TimeSpan.Zero));
         var executor = new RecordingExecutor { FailFirst = true };
@@ -53,9 +53,9 @@ public sealed class WorkerTests
             Assert.Single(executor.Calls);
             await clock.TickAsync(new(2026, 10, 1, 1, 5, 20, TimeSpan.Zero));
             await clock.TickAsync(new(2026, 10, 1, 1, 5, 40, TimeSpan.Zero));
-            Assert.Equal(2, executor.Calls.Count);
+            Assert.Single(executor.Calls);
             await clock.TickAsync(new(2026, 10, 1, 2, 5, 0, TimeSpan.Zero));
-            Assert.Equal(3, executor.Calls.Count);
+            Assert.Equal(2, executor.Calls.Count);
         }
         finally { await worker.StopAsync(default); }
     }
