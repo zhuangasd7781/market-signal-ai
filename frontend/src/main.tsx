@@ -10,11 +10,12 @@ import './theme.css';
 import { ThemeToggle } from './ThemeToggle';
 import { AISettings } from './AISettings';
 import { AnalysisScheduleSettings } from './AnalysisScheduleSettings';
+import { PromptSettings } from './PromptSettings';
 
 function AppShell() {
   const navigate = useNavigate();
   if (sessionStorage.getItem('demo-session') !== 'yes') return <Navigate to="/login" replace />;
-  return <><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">m<span>∕</span></span>Market Signal <span className="brand-ai">AI</span></Link><nav><Link className="nav-link" to="/">我的追蹤</Link><Link className="nav-link" to="/settings/ai">AI 設定</Link><Link className="nav-link" to="/settings/schedule">分析排程</Link></nav><div className="account"><ThemeToggle /><span className="avatar">D</span><span className="account-name">Demo 投資人</span><button className="text-button" onClick={() => { sessionStorage.removeItem('demo-session'); navigate('/login'); }}>離開示範</button></div></header><main><Outlet /></main><footer><span>MARKET SIGNAL AI</span><Link to="/settings/schedule">分析排程</Link><Link to="/settings/ai">AI 設定</Link><span>獨立觀點，自主判斷。</span></footer></>;
+  return <><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">m<span>∕</span></span>Market Signal <span className="brand-ai">AI</span></Link><nav><Link className="nav-link" to="/">我的追蹤</Link><Link className="nav-link" to="/settings/ai">AI 設定</Link><Link className="nav-link" to="/settings/schedule">分析排程</Link><Link className="nav-link" to="/settings/prompts">Prompt 設定</Link></nav><div className="account"><ThemeToggle /><span className="avatar">D</span><span className="account-name">Demo 投資人</span><button className="text-button" onClick={() => { sessionStorage.removeItem('demo-session'); navigate('/login'); }}>離開示範</button></div></header><main><Outlet /></main><footer><Link to="/settings/prompts">Prompt 設定</Link><span>MARKET SIGNAL AI</span><Link to="/settings/schedule">分析排程</Link><Link to="/settings/ai">AI 設定</Link><span>獨立觀點，自主判斷。</span></footer></>;
 }
 function Login() {
   const navigate = useNavigate();
@@ -131,4 +132,4 @@ function ProductDetail() {
       <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); return a ? <AnalysisCard key={p.code} analysis={a} /> : <article className="analysis-card" key={p.code}><h3 className="provider-heading"><ProviderLogo code={p.code} />{p.displayName}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Home />} /><Route path="/settings/ai" element={<AISettings />} /><Route path="/settings/schedule" element={<AnalysisScheduleSettings />} /><Route path="/products/:symbol" element={<ProductDetail />} /><Route path="*" element={<div className="empty"><h1>找不到此頁面</h1><Link to="/">返回我的追蹤</Link></div>} /></Route></Routes></BrowserRouter></StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Home />} /><Route path="/settings/ai" element={<AISettings />} /><Route path="/settings/schedule" element={<AnalysisScheduleSettings />} /><Route path="/settings/prompts" element={<PromptSettings />} /><Route path="/products/:symbol" element={<ProductDetail />} /><Route path="*" element={<div className="empty"><h1>找不到此頁面</h1><Link to="/">返回我的追蹤</Link></div>} /></Route></Routes></BrowserRouter></StrictMode>);

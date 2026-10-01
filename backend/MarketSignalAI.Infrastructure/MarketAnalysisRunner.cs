@@ -7,7 +7,7 @@ namespace MarketSignalAI.Infrastructure;
 
 public sealed class MarketAnalysisRunner(
     IMarketDataProvider marketData, IMarketStore marketStore, ISignalStore signals,
-    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null, IAIProviderSettingsStore? settings = null) : IMarketAnalysisRunner
+    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null, IAIProviderSettingsStore? settings = null, IPromptStore? prompts = null) : IMarketAnalysisRunner
 {
     public Task<ProductRunResult> RunProductAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate = null) =>
         RunProductCoreAsync(symbol, ct, expectedTradeDate, new ReferenceDataCache(marketData));
@@ -68,8 +68,13 @@ public sealed class MarketAnalysisRunner(
                     referenceContexts.Add(await referenceCache.GetAsync(mapping, quoteDate.AddDays(-30), quoteDate, ct));
             // Freeze one complete context before calling any provider. Legacy singular input stays null;
             // every provider receives the same labelled prior decisions, including its own.
+            var promptSettings = prompts is null ? null : await prompts.GetAsync(userId, ct);
+            var activePrompt = promptSettings is null
+                ? new PromptVersion(0, "investment-analysis-v1", AnalysisProtocol.CommonInstructions, DateTime.MinValue)
+                : promptSettings.Versions.Single(x => x.Id == promptSettings.ActiveVersionId);
+            var promptSnapshot = AnalysisProtocol.CapturePrompt(activePrompt, product.IsLeveraged);
             var context = new MarketContext(product, snapshot, history, position, null)
-            { MarketReferences = referenceContexts.ToArray(), PreviousDecisions = prior };
+            { MarketReferences = referenceContexts.ToArray(), PreviousDecisions = prior, Prompt = promptSnapshot };
             var sharedInput = JsonSerializer.Deserialize<JsonElement>(AnalysisProtocol.Input(context));
             var providerSettings=plans[userId];
             foreach (var provider in enabled.Where(p=>(selection is null || selection.Contains(p.Code)) &&
@@ -91,7 +96,7 @@ public sealed class MarketAnalysisRunner(
                     timeout.CancelAfter(analyst.Timeout);
                     var answer = await analyst.AnalyzeAsync(context, timeout.Token);
                     AnalysisResultValidator.Validate(answer);
-                    var input = JsonSerializer.Serialize(new { configuredModel = configured?.ConfiguredModel ?? analyst.Model, isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
+                    var input = JsonSerializer.Serialize(new { promptVersion = promptSnapshot.Version, promptVersionId = promptSnapshot.Id, promptSnapshot, skillIdentifiers = promptSnapshot.Skills.Select(x => x.Identifier).ToArray(), configuredModel = configured?.ConfiguredModel ?? analyst.Model, isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
                     var savedAnalysis = await marketStore.SaveAnalysisAsync(new(0, userId, product.Id, provider.Id,
                         answer.Model, answer.Analysis, input, answer.RawResponse, DateTime.UtcNow, answer.Usage), ct);
                     outcomes.Add(new(provider.Code, "COMPLETED", savedAnalysis.Id, null, answer.Model, answer.Analysis, answer.Usage, configured?.ConfiguredModel ?? analyst.Model));

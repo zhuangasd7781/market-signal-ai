@@ -32,6 +32,7 @@ public interface IMarketStore
 public sealed record MarketContext(Product Product, MarketSnapshot Snapshot, IReadOnlyList<HistoricalPrice> History,
     UserPosition? Position, Analysis? PreviousDecision)
 {
+    public AnalysisPromptSnapshot? Prompt { get; init; }
     public IReadOnlyList<MarketReferenceContext> MarketReferences { get; init; } = [];
     public IReadOnlyList<PreviousProviderDecision> PreviousDecisions { get; init; } = [];
 }
