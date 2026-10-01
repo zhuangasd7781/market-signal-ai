@@ -12,3 +12,4 @@
 *.log
 *.tsbuildinfo
 .local/
+.idea/
