@@ -5,3 +5,6 @@
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .position-form input[type="checkbox"]{width:18px;height:18px;align-self:flex-start}
+
+.history-panel{min-width:0}.history-scroll{overflow-x:auto;max-width:100%;margin-top:18px}.history-table th,.history-table td{padding:14px 16px}.history-table th:first-child,.history-table td:first-child{width:auto;min-width:180px}.history-detail{white-space:normal;max-width:1050px;overflow-wrap:anywhere}.history-detail p,.history-detail li{font-size:12px;line-height:1.85}.history-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}.history-detail ul{padding-left:18px}.history-reference{padding:14px 0;border-bottom:1px solid #30363a}.history-reference strong{font-size:12px}.history-expanded>td{background:#191d20}.history-table .provider-heading{white-space:nowrap}.history-table button{padding:6px 12px}.history-detail .next-action{flex-wrap:wrap}
+@media(max-width:650px){.history-panel{padding:16px}.history-detail-grid{grid-template-columns:1fr;gap:10px}.history-detail{max-width:calc(100vw - 90px)}.history-table th,.history-table td{padding:12px}.history-expanded>td{padding:16px}}
