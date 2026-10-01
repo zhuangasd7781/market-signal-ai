@@ -1,6 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup>  <UserSecretsId>d7d455b1-e8d0-4794-aafe-d867a70061ab</UserSecretsId>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../MarketSignalAI.Infrastructure/MarketSignalAI.Infrastructure.csproj" />
     <PackageReference Include="FastEndpoints" Version="5.35.0" />
+    <PackageReference Include="FastEndpoints.Swagger" Version="5.35.0" />
   </ItemGroup>
 </Project>

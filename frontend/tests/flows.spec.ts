@@ -9,7 +9,7 @@ test('login, dynamic board, search, detail, position, history, remove', async ({
   await expect(page.getByRole('heading', { name: '我的追蹤' })).toBeVisible();
   const providers = await (await request.get('/api/ai/providers')).json();
   for (const provider of providers) await expect(page.getByRole('columnheader', { name: provider.displayName })).toBeVisible();
-  await expect(page.getByText('CHANGED').first()).toBeVisible();
+  await expect(page.locator('.changed:not(.changed-placeholder)').first()).toBeVisible();
   await expect(page.getByText('平均成本')).toHaveCount(0);
   await page.screenshot({ path: 'test-results/desktop.png', fullPage: true });
   await page.getByRole('textbox', { name: '搜尋追蹤商品' }).fill('2330');

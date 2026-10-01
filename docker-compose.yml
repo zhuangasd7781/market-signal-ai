@@ -11,6 +11,8 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./backend/MarketSignalAI.Infrastructure/Migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql:ro
+      - ./backend/MarketSignalAI.Infrastructure/Migrations/002_market_pipeline.sql:/docker-entrypoint-initdb.d/002_market_pipeline.sql:ro
+      - ./backend/MarketSignalAI.Infrastructure/Migrations/003_openai_usage.sql:/docker-entrypoint-initdb.d/003_openai_usage.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -u$$MYSQL_USER -D$$MYSQL_DATABASE -e 'SELECT 1' >/dev/null 2>&1"]
       interval: 5s
@@ -25,6 +27,12 @@ services:
       ASPNETCORE_URLS: http://+:8080
       Demo__Enabled: "true"
       Storage__Provider: MySql
+      OpenAI__Enabled: ${OPENAI_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OpenAI__Model: ${OPENAI_MODEL:-gpt-6.1-sol}
+      OpenAI__ReasoningEffort: ${OPENAI_REASONING_EFFORT:-medium}
+      OpenAI__MaxOutputTokens: ${OPENAI_MAX_OUTPUT_TOKENS:-8192}
+      MarketWorker__Enabled: ${MARKET_WORKER_ENABLED:-true}
       ConnectionStrings__MySql: "Server=mysql;Database=${MYSQL_DATABASE:-market_signal};User ID=${MYSQL_USER:-market_signal};Password=${MYSQL_PASSWORD};DateTimeKind=Utc"
     depends_on:
       mysql:

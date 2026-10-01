@@ -1,10 +1,10 @@
 import { StrictMode, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { api } from './api';
+import { api, apiOptional } from './api';
 import { ProviderLogo } from './ProviderLogo';
 import { AddProductDialog, ErrorState, LoadingState, RelativeTime, SignalBadge, WatchlistTable } from './components';
-import type { AnalysisView, Position, Product, Provider, Watchlist } from './types';
+import type { AnalysisView, MarketQuote, Position, Product, Provider, Watchlist } from './types';
 import './styles.css';
 import './theme.css';
 import { ThemeToggle } from './ThemeToggle';
@@ -43,6 +43,8 @@ function Home() {
 }
 function PositionSection({ product }: { product: Product }) {
   const [position, setPosition] = useState<Position | null>(null);
+  const [quote, setQuote] = useState<MarketQuote | null>(null);
+  const [quoteError, setQuoteError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [quantity, setQuantity] = useState('');
@@ -57,6 +59,11 @@ function PositionSection({ product }: { product: Product }) {
     finally { setLoading(false); }
   }, [path]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    setQuote(null); setQuoteError(false);
+    void apiOptional<MarketQuote>(`/products/${encodeURIComponent(product.symbol)}/market?market=${encodeURIComponent(product.market)}`)
+      .then(setQuote).catch(() => setQuoteError(true));
+  }, [product.symbol, product.market]);
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError('');
     try {
@@ -67,11 +74,11 @@ function PositionSection({ product }: { product: Product }) {
   }
   return <section className="panel"><div className="section-heading"><h2>我的持倉</h2><button onClick={() => { setQuantity(String(position?.quantity ?? '')); setCost(String(position?.averageCost ?? '')); setEditing(true); }} disabled={loading}> {position ? '編輯持倉' : '設定持倉'}</button></div>
     {error && <ErrorState message={error} retry={() => void load()} />}{loading ? <LoadingState /> : editing ? <form onSubmit={save} className="position-form"><label>持有數量（{product.quantityUnit}）<input type="number" min="0" max="999999999999" step="0.000001" required value={quantity} onChange={e => setQuantity(e.target.value)} /></label><label>平均成本（每股／單位）<input type="number" min="0" max="999999999999" step="0.000001" required value={cost} onChange={e => setCost(e.target.value)} /></label><button className="primary" disabled={busy}>儲存</button><button type="button" disabled={busy} onClick={() => setEditing(false)}>取消</button></form> : position ? <div className="position-grid"><div><span>持有數量</span><strong>{position.quantity} <small>{product.quantityUnit}</small></strong></div><div><span>平均成本</span><strong>{position.averageCost.toLocaleString()}</strong></div><div><span>目前損益</span><strong>—</strong></div><div><span>報酬率</span><strong>—</strong></div></div> : <p className="muted">尚未設定持倉。追蹤商品不代表持有。</p>}
-    <p className="small muted">尚無市場報價，因此不計算損益與報酬率。{product.quantityUnit === '張' && ` 1 張 = ${product.unitSize.toLocaleString()} 股／單位。`}</p></section>;
+    <p className="small muted">{quote ? `最近報價 ${quote.price.toLocaleString()} 元 · 行情時間 ${new Date(quote.marketTime).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}（可能延遲）；損益與報酬率尚未計算。` : quoteError ? '目前無法讀取行情。' : '尚無市場報價，因此不計算損益與報酬率。'}{product.quantityUnit === '張' && ` 1 張 = ${product.unitSize.toLocaleString()} 股／單位。`}</p></section>;
 }
 function AnalysisCard({ analysis }: { analysis: AnalysisView }) {
   const a = analysis.result;
-  return <article className="analysis-card"><div className="section-heading"><div><h3 className="provider-heading"><ProviderLogo code={analysis.provider} />{analysis.displayName}</h3><span className="small muted">{analysis.model} · <RelativeTime value={analysis.createdAt} /></span></div><SignalBadge action={a.action} quantity={a.quantity} /></div><div className="confidence">示範信心值 <strong>{a.confidence}%</strong></div><h4>Root Event <span className="tag">{a.rootEvent.status}</span></h4><p>{a.rootEvent.summary}</p><dl className="context-grid">{[['市場狀態', a.marketRegime], ['趨勢', a.trend], ['動能', a.momentum], ['量價', a.volume], ['風險報酬', a.riskReward]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value === 'UNKNOWN' ? '資料不足' : value}</dd></div>)}</dl>
+  return <article className="analysis-card"><div className="section-heading"><div><h3 className="provider-heading"><ProviderLogo code={analysis.provider} />{analysis.displayName}</h3><span className="small muted">{analysis.model} · <RelativeTime value={analysis.createdAt} /></span></div><SignalBadge action={a.action} quantity={a.quantity} /></div><div className="confidence">{analysis.model.startsWith('mock') ? '示範信心值' : '分析信心值'} <strong>{a.confidence}%</strong></div><h4>Root Event <span className="tag">{a.rootEvent.status}</span></h4><p>{a.rootEvent.summary}</p><dl className="context-grid">{[['市場狀態', a.marketRegime], ['趨勢', a.trend], ['動能', a.momentum], ['量價', a.volume], ['風險報酬', a.riskReward]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value === 'UNKNOWN' ? '資料不足' : value}</dd></div>)}</dl>
       {([['主要原因', a.reasons], ['風險', a.risks], ['Bull Case · 多方觀點', a.bullCase], ['Bear Case · 空方觀點', a.bearCase]] as const).map(([title, items]) => <div key={title}><h4>{title}</h4><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}<div className="invalidation"><h4>什麼情況會使分析失效？</h4><p>{a.invalidation}</p></div><h4>下一步</h4>{a.nextActions.map((next, i) => <div className="next-action" key={i}><p>{next.condition}</p><SignalBadge action={next.action} quantity={next.quantity} /></div>)}</article>;
 }
 function ProductDetail() {
@@ -117,9 +124,9 @@ function ProductDetail() {
     finally { setBusy(false); }
   }
   return <><Link className="back" to="/">← 返回我的追蹤</Link>{error && <ErrorState message={error} retry={() => void load()} />}{!product ? !error && <LoadingState /> : <><div className="page-heading detail-heading"><div><span className="eyebrow">{product.market} / {product.assetType}{product.isLeveraged && ' / LEVERAGED'}</span><h1>{product.symbol}</h1><p>{product.name}</p></div><div>{confirmRemove ? <div className="confirm-remove"><span>移除追蹤？持倉與歷史會保留。</span><button disabled={busy} onClick={() => void changeWatch()}>確認移除</button><button onClick={() => setConfirmRemove(false)}>取消</button></div> : <button disabled={busy} onClick={() => tracked ? setConfirmRemove(true) : void changeWatch()}>{tracked ? '移除追蹤' : '＋ 加入追蹤'}</button>}</div></div>
-      <PositionSection key={product.id} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。以下皆為示範內容。</p></div><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div>
+      <PositionSection key={product.id} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。請留意模型與分析時間。</p></div><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div>
       {analysisError && <ErrorState message={analysisError} retry={() => void load()} />}{showHistory && <section className="panel"><h3>分析歷史（最近 100 筆）</h3>{history?.length === 0 && <p className="muted">尚無分析紀錄。</p>}{history?.map(a => <div className="history-row" key={a.id}><span>{a.displayName}</span><SignalBadge action={a.result.action} quantity={a.result.quantity} /><time>{new Date(a.createdAt).toLocaleString('zh-TW')}</time></div>)}</section>}
-      <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); return a ? <AnalysisCard key={p.code} analysis={a} /> : <article className="analysis-card" key={p.code}><h3 className="provider-heading"><ProviderLogo code={p.code} />{p.displayName}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。真實 AI 分析將於後續階段提供。'}</p></article>; })}</div></>}</>;
+      <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); return a ? <AnalysisCard key={p.code} analysis={a} /> : <article className="analysis-card" key={p.code}><h3 className="provider-heading"><ProviderLogo code={p.code} />{p.displayName}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Home />} /><Route path="/products/:symbol" element={<ProductDetail />} /><Route path="*" element={<div className="empty"><h1>找不到此頁面</h1><Link to="/">返回我的追蹤</Link></div>} /></Route></Routes></BrowserRouter></StrictMode>);

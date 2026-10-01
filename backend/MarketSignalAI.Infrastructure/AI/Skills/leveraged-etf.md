@@ -1,0 +1,2 @@
+This product is a leveraged ETF. Explicitly consider leverage, volatility, drawdown, downside sensitivity, daily rebalancing and decay during prolonged sideways trading.
+Distinguish the ETF price series from the underlying index. If the underlying index data is unavailable, state that limitation instead of inventing its trend. Do not assume leveraged long-term returns equal a fixed multiple of the index return.

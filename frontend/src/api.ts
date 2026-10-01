@@ -8,3 +8,9 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
   }
   return response.status === 204 ? undefined as T : response.json();
 }
+export async function apiOptional<T>(path: string): Promise<T | null> {
+  const response = await fetch(`/api${path}`, { headers: { 'X-Market-Signal': 'web' } });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error('服務暫時無法使用，請稍後再試。');
+  return response.json();
+}

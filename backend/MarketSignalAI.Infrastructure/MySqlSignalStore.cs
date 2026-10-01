@@ -70,14 +70,15 @@ public sealed class MySqlSignalStore(string connectionString) : ISignalStore
         // Home needs only the last two records for each product/provider. Detail history is capped.
         var sql = productId is null ? """
             SELECT * FROM (
-              SELECT a.*, ROW_NUMBER() OVER(PARTITION BY ProductId,AIProviderId ORDER BY CreatedAt DESC,Id DESC) AS rn
-              FROM AIAnalysisResults a WHERE UserId=@userId
+              SELECT a.*, u.InputTokens, u.OutputTokens, u.CachedTokens, ROW_NUMBER() OVER(PARTITION BY ProductId,AIProviderId ORDER BY CreatedAt DESC,Id DESC) AS rn
+              FROM AIAnalysisResults a LEFT JOIN AIAnalysisUsage u ON u.AnalysisId=a.Id WHERE a.UserId=@userId
             ) ranked WHERE rn<=2
-            """ : "SELECT * FROM AIAnalysisResults WHERE UserId=@userId AND ProductId=@productId ORDER BY CreatedAt DESC,Id DESC LIMIT 100";
+            """ : "SELECT a.*,u.InputTokens,u.OutputTokens,u.CachedTokens FROM AIAnalysisResults a LEFT JOIN AIAnalysisUsage u ON u.AnalysisId=a.Id WHERE a.UserId=@userId AND a.ProductId=@productId ORDER BY a.CreatedAt DESC,a.Id DESC LIMIT 100";
         var rows = await db.QueryAsync<StoredAnalysis>(Command(sql, new { userId, productId }, ct));
         return rows.Select(x => new AnalysisRecord(x.Id, x.UserId, x.ProductId, x.AIProviderId, x.Model,
             JsonSerializer.Deserialize<Analysis>(x.AnalysisJson) ?? throw new InvalidOperationException("Invalid stored analysis."),
-            x.InputSnapshotJson, x.RawResponse, DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc))).ToArray();
+            x.InputSnapshotJson, x.RawResponse, DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc),
+            x.InputTokens is { } input && x.OutputTokens is { } output ? new TokenUsage(input, output, x.CachedTokens) : null)).ToArray();
     }
     public async Task<bool> IsHealthyAsync(CancellationToken ct)
     {
@@ -122,5 +123,8 @@ public sealed class MySqlSignalStore(string connectionString) : ISignalStore
         public string InputSnapshotJson { get; set; } = "";
         public string RawResponse { get; set; } = "";
         public DateTime CreatedAt { get; set; }
+        public long? InputTokens { get; set; }
+        public long? OutputTokens { get; set; }
+        public long? CachedTokens { get; set; }
     }
 }

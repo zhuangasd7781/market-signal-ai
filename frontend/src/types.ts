@@ -5,6 +5,7 @@ export interface Signal { provider: string; action: Action; quantity: number | n
 export interface WatchRow { product: Product; signals: Signal[]; lastAnalyzedAt: string | null }
 export interface Watchlist { providers: Provider[]; items: WatchRow[]; isMock: boolean }
 export interface Position { quantity: number; averageCost: number; updatedAt: string }
+export interface MarketQuote { symbol: string; price: number; open: number; high: number; low: number; previousClose: number; volume: number; marketTime: string; fetchedAt: string }
 export interface AnalysisView {
   id: number; provider: string; displayName: string; model: string; createdAt: string;
   result: {

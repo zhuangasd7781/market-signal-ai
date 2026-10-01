@@ -23,7 +23,7 @@ public sealed record Signal(string Provider, string DisplayName, string Action, 
     bool Changed, DateTime AnalyzedAt);
 public sealed record WatchlistRow(Product Product, IReadOnlyList<Signal> Signals, DateTime? LastAnalyzedAt);
 public sealed record WatchlistResponse(IReadOnlyList<AIProvider> Providers, IReadOnlyList<WatchlistRow> Items, bool IsMock = true);
-public sealed record AnalysisView(long Id, string Provider, string DisplayName, string Model, Analysis Result, DateTime CreatedAt);
+public sealed record AnalysisView(long Id, string Provider, string DisplayName, string Model, Analysis Result, DateTime CreatedAt, TokenUsage? Usage = null);
 
 public sealed class SignalService(ISignalStore store, ICurrentUser currentUser)
 {
@@ -62,7 +62,7 @@ public sealed class SignalService(ISignalStore store, ICurrentUser currentUser)
         return selected.Where(x => providers.Any(p => p.Id == x.AIProviderId)).Select(x =>
         {
             var provider = providers.Single(p => p.Id == x.AIProviderId);
-            return new AnalysisView(x.Id, provider.Code, provider.DisplayName, x.Model, x.Result, x.CreatedAt);
+            return new AnalysisView(x.Id, provider.Code, provider.DisplayName, x.Model, x.Result, x.CreatedAt, x.Usage);
         }).ToArray();
     }
 }

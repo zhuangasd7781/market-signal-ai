@@ -1,0 +1,180 @@
+{
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "ADD",
+        "HOLD",
+        "REDUCE",
+        "EXIT"
+      ]
+    },
+    "quantity": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "rootEvent": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "BULLISH",
+            "BEARISH",
+            "NEUTRAL",
+            "UNKNOWN"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "EXPECTED",
+            "INVALIDATED",
+            "UNVERIFIED",
+            "UNKNOWN"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction",
+        "status",
+        "summary"
+      ],
+      "additionalProperties": false
+    },
+    "marketRegime": {
+      "type": "string",
+      "enum": [
+        "BULL",
+        "BEAR",
+        "SIDEWAYS",
+        "UNKNOWN"
+      ]
+    },
+    "trend": {
+      "type": "string",
+      "enum": [
+        "BULLISH",
+        "BEARISH",
+        "NEUTRAL",
+        "UNKNOWN"
+      ]
+    },
+    "momentum": {
+      "type": "string",
+      "enum": [
+        "POSITIVE",
+        "NEGATIVE",
+        "NEUTRAL",
+        "UNKNOWN"
+      ]
+    },
+    "volume": {
+      "type": "string",
+      "enum": [
+        "SUPPORTIVE",
+        "WARNING",
+        "NEUTRAL",
+        "UNKNOWN"
+      ]
+    },
+    "riskReward": {
+      "type": "string",
+      "enum": [
+        "FAVORABLE",
+        "UNFAVORABLE",
+        "NEUTRAL",
+        "UNKNOWN"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bullCase": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bearCase": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "invalidation": {
+      "type": "string"
+    },
+    "nextActions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "condition": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "ADD",
+              "HOLD",
+              "REDUCE",
+              "EXIT"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "condition",
+          "action",
+          "quantity"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "action",
+    "quantity",
+    "confidence",
+    "rootEvent",
+    "marketRegime",
+    "trend",
+    "momentum",
+    "volume",
+    "riskReward",
+    "reasons",
+    "risks",
+    "bullCase",
+    "bearCase",
+    "invalidation",
+    "nextActions"
+  ],
+  "additionalProperties": false
+}

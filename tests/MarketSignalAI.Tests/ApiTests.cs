@@ -2,21 +2,26 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using MarketSignalAI.Application;
+using MarketSignalAI.Api;
 using MarketSignalAI.Infrastructure;
+using MarketSignalAI.Domain;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
 
 namespace MarketSignalAI.Tests;
 
-public sealed class ApiFactory : WebApplicationFactory<Program>
+public sealed class ApiFactory(Action<IServiceCollection>? services = null) : WebApplicationFactory<Program>
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseEnvironment("Development")
+    protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseSetting("DeepSeek:Enabled", "false").UseEnvironment("Development").UseSetting("OpenAI:Enabled", "false")
         .ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Demo:Enabled"] = "true", ["Storage:Provider"] = "Memory"
-        }));
+            ["Demo:Enabled"] = "true", ["Storage:Provider"] = "Memory", ["OpenAI:Enabled"] = "false"
+        })).ConfigureTestServices(s => services?.Invoke(s));
 }
 
 public sealed class ApiTests
@@ -92,5 +97,91 @@ public sealed class ApiTests
         Assert.DoesNotContain("rawResponse", history);
         Assert.DoesNotContain("inputSnapshotJson", history);
         Assert.Equal(6, JsonDocument.Parse(history).RootElement.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task MarketApi_ReadsStoredSnapshot_AndForceAppendsAnalysis()
+    {
+        var fake = new FakeMarketDataProvider();
+        await using var factory = new ApiFactory(s => { s.RemoveAll<IMarketDataProvider>(); s.AddSingleton<IMarketDataProvider>(fake); });
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Market-Signal", "web");
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/products/00631L/market")).StatusCode);
+        Assert.Equal(0, fake.SnapshotCalls);
+        var force = await client.PostAsync("/api/products/00631L/analysis/force", null);
+        Assert.Equal(HttpStatusCode.OK, force.StatusCode);
+        var run = await force.Content.ReadFromJsonAsync<ProductRunResult>();
+        Assert.Equal(3, run!.Providers.Count);
+        Assert.All(run.Providers, p => Assert.Equal("COMPLETED", p.Status));
+        Assert.All(run.Providers, p => { Assert.Equal("mock-v1", p.Model); Assert.NotNull(p.Result); });
+        var quote = await client.GetFromJsonAsync<MarketResponse>("/api/products/00631L/market");
+        Assert.Equal(42.5m, quote!.Price);
+        Assert.Equal(1, fake.SnapshotCalls);
+        var history = await client.GetFromJsonAsync<AnalysisView[]>("/api/products/00631L/analysis/history");
+        Assert.Equal(9, history!.Length);
+        Assert.Equal(3, history.Count(x => x.Model == "mock-v1" && x.CreatedAt > DateTime.UtcNow.AddMinutes(-2)));
+        await client.PostAsync("/api/products/00631L/analysis/force", null);
+        history = await client.GetFromJsonAsync<AnalysisView[]>("/api/products/00631L/analysis/history");
+        Assert.Equal(12, history!.Length);
+    }
+
+    [Fact]
+    public async Task BatchAndProviderFailures_DoNotLoseOtherResults()
+    {
+        var fake = new FakeMarketDataProvider { FailingSymbol = "5871" };
+        await using var factory = new ApiFactory(s =>
+        {
+            s.RemoveAll<IMarketDataProvider>(); s.AddSingleton<IMarketDataProvider>(fake);
+            s.RemoveAll<IAIAnalyst>();
+            s.AddSingleton<IAIAnalyst>(new MockAIAnalyst("deepseek"));
+            s.AddSingleton<IAIAnalyst>(new MockAIAnalyst("openai"));
+            s.AddSingleton<IAIAnalyst>(new FailingAnalyst());
+        });
+        using var scope = factory.Services.CreateScope();
+        var batch = await scope.ServiceProvider.GetRequiredService<IMarketAnalysisRunner>().RunAllAsync(default);
+        Assert.Equal(2, batch.Completed.Count);
+        Assert.Single(batch.Failed, x => x.Symbol == "5871");
+        Assert.All(batch.Completed, p =>
+        {
+            Assert.Equal(2, p.Providers.Count(x => x.Status == "COMPLETED"));
+            Assert.Single(p.Providers, x => x.Status == "FAILED" && x.Provider == "claude");
+        });
+    }
+
+    [Fact]
+    public async Task Swagger_ContainsAllFastEndpointRoutes()
+    {
+        await using var factory = new ApiFactory();
+        var client = factory.CreateClient();
+        var response = await client.GetAsync("/swagger/v1/swagger.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var paths = doc.RootElement.GetProperty("paths");
+        Assert.True(paths.TryGetProperty("/api/products/{symbol}/market", out _));
+        Assert.True(paths.TryGetProperty("/api/products/{symbol}/analysis/force", out _));
+        Assert.True(paths.TryGetProperty("/api/watchlist", out _));
+        var parameters = paths.GetProperty("/api/products/{symbol}/analysis/force").GetProperty("post").GetProperty("parameters");
+        Assert.Contains(parameters.EnumerateArray(), p => p.GetProperty("name").GetString() == "X-Market-Signal" && p.GetProperty("in").GetString() == "header");
+    }
+
+    private sealed class FakeMarketDataProvider : IMarketDataProvider
+    {
+        public int SnapshotCalls { get; private set; }
+        public string? FailingSymbol { get; init; }
+        public Task<MarketSnapshot> GetSnapshotAsync(string symbol, CancellationToken ct)
+        {
+            SnapshotCalls++;
+            if (symbol == FailingSymbol) throw new HttpRequestException("simulated Yahoo failure");
+            return Task.FromResult(new MarketSnapshot(symbol, 42.5m, 42m, 43m, 41m, 40m, 1234,
+                DateTimeOffset.UtcNow, DateTimeOffset.UtcNow));
+        }
+        public Task<IReadOnlyList<HistoricalPrice>> GetHistoricalPricesAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<HistoricalPrice>>([]);
+        public Task<bool> IsTradingDayAsync(DateOnly date, CancellationToken ct) => Task.FromResult(true);
+    }
+    private sealed class FailingAnalyst : IAIAnalyst
+    {
+        public string ProviderCode => "claude";
+        public Task<AnalystResult> AnalyzeAsync(MarketContext context, CancellationToken ct) => throw new InvalidDataException("simulated provider failure");
     }
 }

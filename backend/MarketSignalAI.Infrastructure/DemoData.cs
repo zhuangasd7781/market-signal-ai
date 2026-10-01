@@ -20,7 +20,7 @@ public static class DemoData
         foreach (var product in Products.Take(3))
         foreach (var provider in Providers)
         {
-            var action = (product.Id, provider.Id) switch { (1, 2) or (3, 1) or (3, 2) => "REDUCE", (2, 1) => "ADD", _ => "HOLD" };
+            var action = MockAction(product, provider.Code);
             foreach (var previous in new[] { true, false })
             {
                 var result = Result(previous ? "HOLD" : action, product.IsLeveraged);
@@ -33,13 +33,20 @@ public static class DemoData
         return records.ToArray();
     }
 
+    public static string MockAction(Product product, string providerCode) => (product.Id, providerCode) switch
+    {
+        (1, "openai") or (3, "deepseek") or (3, "openai") => "REDUCE",
+        (2, "deepseek") => "ADD",
+        _ => "HOLD"
+    };
+    public static Analysis MockResult(string action, bool leveraged) => Result(action, leveraged);
     private static Analysis Result(string action, bool leveraged) => new(action, action is "ADD" or "REDUCE" ? 1 : null,
-        60, new("UNKNOWN", "UNVERIFIED", "示範情境：未接入新聞或市場資料，無已確認的 Root Event。"),
+        60, new("UNKNOWN", "UNVERIFIED", "示範情境：未使用行情或新聞推論，無已確認的 Root Event。"),
         "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN",
         ["此訊號用於展示各 AI 的獨立觀點，不代表實際分析。", "正式分析需結合市場資料、持倉與前次決策。"],
-        leveraged ? ["槓桿 ETF 須額外考量波動、回撤與盤整耗損。", "示範資料不能用於交易。"] : ["市場資料尚未接入。", "示範資料不能用於交易。"],
+        leveraged ? ["槓桿 ETF 須額外考量波動、回撤與盤整耗損。", "示範資料不能用於交易。"] : ["示範訊號未依行情產生。", "示範資料不能用於交易。"],
         ["情境示例：若正面催化因素獲得證實且趨勢延續，可支持持有。"],
         ["情境示例：若核心投資論點失效，需重新評估風險。"],
         "情境示例：核心催化因素被否定，或趨勢與成交量共同轉弱。",
-        [new("等待真實資料與已確認證據後重新分析。", "HOLD", null)]);
+        [new("等待真實 AI 分析與已確認證據後重新分析。", "HOLD", null)]);
 }

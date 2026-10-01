@@ -12,4 +12,12 @@ public sealed record Analysis(
     string[] Reasons, string[] Risks, string[] BullCase, string[] BearCase,
     string Invalidation, NextAction[] NextActions);
 public sealed record AnalysisRecord(long Id, long UserId, long ProductId, long AIProviderId,
-    string Model, Analysis Result, string InputSnapshotJson, string RawResponse, DateTime CreatedAt);
+    string Model, Analysis Result, string InputSnapshotJson, string RawResponse, DateTime CreatedAt, TokenUsage? Usage = null);
+public sealed record TokenUsage(long InputTokens, long OutputTokens, long? CachedTokens = null);
+public sealed record ProviderFailure(long UserId, long ProductId, long AIProviderId, string? Model,
+    string? ReasoningEffort, string Error, TokenUsage? Usage, DateTime CreatedAt);
+public sealed record MarketSnapshot(string Symbol, decimal Price, decimal Open, decimal High, decimal Low,
+    decimal PreviousClose, long Volume, DateTimeOffset MarketTime, DateTimeOffset FetchedAt);
+public sealed record HistoricalPrice(DateOnly TradeDate, decimal Open, decimal High, decimal Low, decimal Close, long Volume);
+public sealed record StoredMarketSnapshot(long Id, long ProductId, MarketSnapshot Snapshot);
+public sealed record TradingDay(DateOnly TradeDate, string Market, string Status, DateTimeOffset CheckedAt);

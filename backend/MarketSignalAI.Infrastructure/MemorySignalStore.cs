@@ -8,7 +8,7 @@ public sealed class MemorySignalStore : ISignalStore
     private readonly object gate = new();
     private readonly HashSet<(long User, long Product)> watchlist = [(1, 1), (1, 2), (1, 3)];
     private readonly Dictionary<(long, long), UserPosition> positions = new();
-    private readonly AnalysisRecord[] history = DemoData.History(DateTime.UtcNow);
+    private readonly List<AnalysisRecord> history = [.. DemoData.History(DateTime.UtcNow)];
     public Task<User?> GetUserAsync(long userId, CancellationToken ct) => Task.FromResult(userId == 1 ? DemoData.User : null);
     public Task<IReadOnlyList<AIProvider>> GetProvidersAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<AIProvider>>(DemoData.Providers);
     public Task<IReadOnlyList<Product>> SearchProductsAsync(string query, CancellationToken ct) => Task.FromResult<IReadOnlyList<Product>>(
@@ -43,7 +43,17 @@ public sealed class MemorySignalStore : ISignalStore
         }
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<AnalysisRecord>> GetHistoryAsync(long userId, long? productId, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<AnalysisRecord>>(history.Where(x => x.UserId == userId && (productId == null || x.ProductId == productId)).ToArray());
+    public Task<IReadOnlyList<AnalysisRecord>> GetHistoryAsync(long userId, long? productId, CancellationToken ct)
+    {
+        lock (gate) return Task.FromResult<IReadOnlyList<AnalysisRecord>>(history.Where(x => x.UserId == userId && (productId == null || x.ProductId == productId)).ToArray());
+    }
+    public Task<IReadOnlyList<long>> GetTrackingUserIdsAsync(long productId, CancellationToken ct)
+    {
+        lock (gate) return Task.FromResult<IReadOnlyList<long>>(watchlist.Where(x => x.Product == productId).Select(x => x.User).ToArray());
+    }
+    public AnalysisRecord AddAnalysis(AnalysisRecord result)
+    {
+        lock (gate) { var saved = result with { Id = history.Max(x => x.Id) + 1 }; history.Add(saved); return saved; }
+    }
     public Task<bool> IsHealthyAsync(CancellationToken ct) => Task.FromResult(true);
 }
