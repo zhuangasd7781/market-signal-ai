@@ -169,3 +169,7 @@ TASK 1 歷史修正：Taiwan50 mapping 仍為 ^TSE50；Yahoo 日價不足時採�
 
 
 AI Provider 設定：開啟 `/settings/ai` 可以儲存 Enabled / Configured Model，API Key 仍由 User Secrets 取得。Force 可用 providers 指定子集合，省略時只執行 Enabled；Disabled 不會產生 Mock 結果或消耗 Token。DB 設定優先於啟動時的預設 Enabled / Model，詳見 [Provider 設定與真實驗證](docs/ai-provider-settings.md)。
+
+## Prompt version settings
+
+`/settings/prompts` manages immutable investment prompt versions shared by GPT and DeepSeek. Analysis snapshots preserve the active version, exact applied rules and skill hashes. See [Prompt management](docs/prompt-management.md) for APIs, trace fields and validation.

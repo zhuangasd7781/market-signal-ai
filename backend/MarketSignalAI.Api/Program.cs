@@ -15,6 +15,7 @@ builder.Services.SwaggerDocument(o => o.DocumentSettings = s => s.OperationProce
 builder.Services.AddSingleton<ICurrentUser, DemoCurrentUser>();
 builder.Services.AddScoped<SignalService>();
 builder.Services.AddScoped<AIProviderSettingsService>();
+builder.Services.AddScoped<PromptService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddHttpClient<IMarketDataProvider, YahooMarketDataProvider>(client =>
 {
@@ -45,6 +46,8 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 {
     var connectionString = builder.Configuration.GetConnectionString("MySql")
         ?? throw new InvalidOperationException("ConnectionStrings:MySql is required.");
+    builder.Services.AddSingleton(new MySqlPromptStore(connectionString));
+    builder.Services.AddSingleton<IPromptStore>(sp => sp.GetRequiredService<MySqlPromptStore>());
     builder.Services.AddSingleton(new MySqlAIProviderSettingsStore(connectionString,providerDefaults));
     builder.Services.AddSingleton<IAIProviderSettingsStore>(sp=>sp.GetRequiredService<MySqlAIProviderSettingsStore>());
     builder.Services.AddSingleton(new MySqlSignalStore(connectionString));
@@ -57,6 +60,7 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
 }
 else if (storage.Equals("Memory", StringComparison.OrdinalIgnoreCase))
 {
+    builder.Services.AddSingleton<IPromptStore, MemoryPromptStore>();
     builder.Services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore(providerDefaults));
     builder.Services.AddSingleton<MemorySignalStore>();
     builder.Services.AddSingleton<ISignalStore>(sp => sp.GetRequiredService<MemorySignalStore>());
@@ -77,6 +81,8 @@ if (app.Services.GetService<MySqlMarketReferenceStore>() is { } referenceSql)
 }
 if(app.Services.GetService<MySqlAIProviderSettingsStore>() is {} providerSql)
     await providerSql.MigrateAndSeedAsync(app.Lifetime.ApplicationStopping);
+if (app.Services.GetService<MySqlPromptStore>() is { } promptSql)
+    await promptSql.MigrateAsync(app.Lifetime.ApplicationStopping);
 app.Use(async (context, next) =>
 {
     context.Response.Headers.CacheControl = "no-store";

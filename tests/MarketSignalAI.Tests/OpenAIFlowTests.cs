@@ -152,6 +152,7 @@ public sealed class OpenAIFlowTests
             await referenceStore.DeleteReferenceAsync(1,1,seeded[0].Id,default);
             await referenceStore.MigrateAsync(default);await referenceStore.SeedAsync(default);
             Assert.DoesNotContain(await referenceStore.GetReferencesAsync(1,1,default),x=>x.Id==seeded[0].Id);
+            await PromptTests.AssertMySqlPromptHistoryAsync(connection);
 
 
         }
