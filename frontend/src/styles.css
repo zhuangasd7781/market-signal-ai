@@ -5,3 +5,5 @@
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .position-form input[type="checkbox"]{width:18px;height:18px;align-self:flex-start}
+
+.market-references select{font:inherit;color:inherit;background:var(--surface,#191d20);border:1px solid var(--border,#34393e);border-radius:7px;padding:11px 13px;max-width:100%;min-width:0}.market-references .position-form label{max-width:100%}.reference-list{list-style:none;padding:0;margin:12px 0}.reference-list li{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border,#30363a)}.reference-list li>div:first-child{min-width:0;overflow-wrap:anywhere}.reference-actions{display:flex;gap:8px;flex-shrink:0}.reference-manager-toggle{margin:20px 0 12px}.market-references .confirm-remove{margin-top:18px}@media(max-width:480px){.reference-list li{align-items:flex-start;flex-wrap:wrap}.market-references select{width:100%}.market-references .section-heading{flex-wrap:wrap}}

@@ -96,6 +96,27 @@ public sealed class MarketReferenceTests
     }
 
     [Fact]
+    public async Task EditedMappingIsSharedByProvidersOnNextRunAndOldSnapshotIsPreserved()
+    {
+        var signals=new MemorySignalStore();var references=new MemoryMarketReferenceStore();
+        var instrument=await references.SaveInstrumentAsync(1,null,"^TWII","TAIEX","TW",default);
+        var mapping=await references.SaveReferenceAsync(1,1,null,instrument.Id,"BROAD_MARKET",default);
+        var gpt=new CaptureAnalyst("openai");var deepseek=new CaptureAnalyst("deepseek");
+        var runner=new MarketAnalysisRunner(new Market(),new MemoryMarketStore(signals),signals,[gpt,deepseek],NullLogger<MarketAnalysisRunner>.Instance,references);
+        await runner.RunProductAsync("00631L",default);
+        var firstSnapshot=(await signals.GetHistoryAsync(1,1,default)).First(x=>x.Model=="captured-live").InputSnapshotJson;
+        await references.SaveInstrumentAsync(1,instrument.Id,"^SOX","SOX","US",default);
+        await references.SaveReferenceAsync(1,1,mapping.Id,instrument.Id,"SECTOR",default);
+        await runner.RunProductAsync("00631L",default);
+        Assert.Same(gpt.Contexts.Last(),deepseek.Contexts.Last());
+        var current=Assert.Single(gpt.Contexts.Last().MarketReferences);
+        Assert.Equal("^SOX",current.Symbol);Assert.Equal("SECTOR",current.ReferenceType);
+        Assert.Contains("^TWII",firstSnapshot);Assert.DoesNotContain("^SOX",firstSnapshot);
+        await references.DeleteReferenceAsync(1,1,mapping.Id,default);
+        await runner.RunProductAsync("00631L",default);
+        Assert.Empty(gpt.Contexts.Last().MarketReferences);Assert.Same(gpt.Contexts.Last(),deepseek.Contexts.Last());
+    }
+    [Fact]
     public async Task NoMappingDoesNotGuessBenchmarks()
     {
         var signals=new MemorySignalStore();var market=new Market();var capture=new CaptureAnalyst("openai");
