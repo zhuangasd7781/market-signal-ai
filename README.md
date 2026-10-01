@@ -173,3 +173,7 @@ AI Provider 設定：開啟 `/settings/ai` 可以儲存 Enabled / Configured Mod
 ## Prompt version settings
 
 `/settings/prompts` manages immutable investment prompt versions shared by GPT and DeepSeek. Analysis snapshots preserve the active version, exact applied rules and skill hashes. See [Prompt management](docs/prompt-management.md) for APIs, trace fields and validation.
+
+## TASK 3–6：設定與歷史
+
+已新增分析排程設定 `/settings/schedule`、Prompt 版本管理 `/settings/prompts`、商品分析歷史 Table，以及商品頁 Market Reference CRUD。各功能使用獨立 Feature Branch 後整合；完整 Build／Tests 與真實 DeepSeek v1／v2 驗證見 [整合驗證報告](docs/remaining-tasks.md)。

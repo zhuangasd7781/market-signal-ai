@@ -1,0 +1,274 @@
+﻿{
+  "date": "2026-10-02",
+  "base": "988a8ef",
+  "tasks": [
+    {
+      "task": 3,
+      "branch": "feature/analysis-schedule-settings",
+      "commit": "c8965c7"
+    },
+    {
+      "task": 4,
+      "branch": "feature/prompt-management",
+      "commit": "8aead60"
+    },
+    {
+      "task": 5,
+      "branch": "feature/analysis-history-table",
+      "commit": "e057962"
+    },
+    {
+      "task": 6,
+      "branch": "feature/market-reference-ui",
+      "commit": "06f9b09"
+    }
+  ],
+  "build": {
+    "backend": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "frontend": "passed"
+  },
+  "tests": {
+    "backendMySql": {
+      "passed": 129,
+      "failed": 0,
+      "skipped": 0
+    },
+    "edge": {
+      "uniqueTestsPassed": 10,
+      "note": "9 passed in full suite; opt-in Reference CRUD separately enabled and passed. Final History changes retested."
+    }
+  },
+  "liveHttp": {
+    "deepSeekRequests": 2,
+    "openAIRequests": 0,
+    "providerRequests": [
+      {
+        "category": "System.Net.Http.HttpClient.DeepSeekAnalyst.LogicalHandler",
+        "message": "Start processing HTTP request POST https://api.deepseek.com/chat/completions"
+      },
+      {
+        "category": "System.Net.Http.HttpClient.DeepSeekAnalyst.LogicalHandler",
+        "message": "Start processing HTTP request POST https://api.deepseek.com/chat/completions"
+      }
+    ]
+  },
+  "dbBefore": [
+    {
+      "latestId": 70,
+      "provider": "claude",
+      "usageCount": 0,
+      "resultCount": 24
+    },
+    {
+      "latestId": 72,
+      "provider": "deepseek",
+      "usageCount": 8,
+      "resultCount": 24
+    },
+    {
+      "latestId": 69,
+      "provider": "openai",
+      "usageCount": 8,
+      "resultCount": 24
+    },
+    {
+      "failures": 2
+    },
+    {
+      "id": 72,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "deepseek",
+      "confidence": 58,
+      "references": 2,
+      "inputTokens": 10588,
+      "targetPrice": 39.62,
+      "cachedTokens": 2304,
+      "outputTokens": 6763,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 71,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "deepseek",
+      "confidence": 55,
+      "references": 2,
+      "inputTokens": 10746,
+      "targetPrice": 39.62,
+      "cachedTokens": 384,
+      "outputTokens": 6485,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 70,
+      "model": "mock-v1",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "claude",
+      "confidence": 60,
+      "references": 2,
+      "inputTokens": null,
+      "targetPrice": 39.62,
+      "cachedTokens": null,
+      "outputTokens": null,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 69,
+      "model": "gpt-6.1-sol",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "openai",
+      "confidence": 60,
+      "references": 2,
+      "inputTokens": 9802,
+      "targetPrice": 39.62,
+      "cachedTokens": 0,
+      "outputTokens": 1119,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    }
+  ],
+  "dbAfter": [
+    {
+      "latestId": 70,
+      "provider": "claude",
+      "usageCount": 0,
+      "resultCount": 24
+    },
+    {
+      "latestId": 74,
+      "provider": "deepseek",
+      "usageCount": 10,
+      "resultCount": 26
+    },
+    {
+      "latestId": 69,
+      "provider": "openai",
+      "usageCount": 8,
+      "resultCount": 24
+    },
+    {
+      "failures": 2
+    },
+    {
+      "id": 74,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": 2,
+      "provider": "deepseek",
+      "confidence": 58,
+      "references": 2,
+      "inputTokens": 10659,
+      "targetPrice": 39.62,
+      "cachedTokens": 768,
+      "outputTokens": 5630,
+      "promptVersion": "investment-analysis-v2",
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 73,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": 2,
+      "provider": "deepseek",
+      "confidence": 57,
+      "references": 2,
+      "inputTokens": 10707,
+      "targetPrice": 39.62,
+      "cachedTokens": 384,
+      "outputTokens": 4425,
+      "promptVersion": "investment-analysis-v1",
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 72,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "deepseek",
+      "confidence": 58,
+      "references": 2,
+      "inputTokens": 10588,
+      "targetPrice": 39.62,
+      "cachedTokens": 2304,
+      "outputTokens": 6763,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    },
+    {
+      "id": 71,
+      "model": "deepseek-v4-pro",
+      "action": "HOLD",
+      "skills": null,
+      "provider": "deepseek",
+      "confidence": 55,
+      "references": 2,
+      "inputTokens": 10746,
+      "targetPrice": 39.62,
+      "cachedTokens": 384,
+      "outputTokens": 6485,
+      "promptVersion": null,
+      "taiwan50HistoryCount": 21
+    }
+  ],
+  "trace": [
+    {
+      "version": 1,
+      "analysisId": 73,
+      "taiexHistory": 20,
+      "underlyingSource": "TWSE",
+      "underlyingStatus": "AVAILABLE",
+      "underlyingQuality": "CLOSE_ONLY",
+      "promptContentMatches": true,
+      "instructionsStartWithVersion": true
+    },
+    {
+      "version": 2,
+      "analysisId": 74,
+      "taiexHistory": 20,
+      "underlyingSource": "TWSE",
+      "underlyingStatus": "AVAILABLE",
+      "underlyingQuality": "CLOSE_ONLY",
+      "promptContentMatches": true,
+      "instructionsStartWithVersion": true
+    },
+    {
+      "activePromptId": 1
+    }
+  ],
+  "react": {
+    "settingsPagesRead": true,
+    "versionsExpanded": [
+      1,
+      2
+    ],
+    "referencesVisible": true,
+    "pageErrors": 0,
+    "forceCallsFromUiValidation": 0,
+    "widthsWithoutOverflow": [
+      390,
+      768,
+      1024,
+      1280
+    ],
+    "historyLightAndDark": "passed"
+  },
+  "preserved": {
+    "openAIEnabled": false,
+    "deepSeekEnabled": true,
+    "claudeEnabled": false,
+    "claude": "Mock",
+    "activePromptVersion": "investment-analysis-v1",
+    "workerEnabledDuringLiveVerification": false
+  }
+}
