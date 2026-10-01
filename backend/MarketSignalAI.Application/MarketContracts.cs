@@ -8,6 +8,12 @@ public interface IMarketDataProvider
     Task<IReadOnlyList<HistoricalPrice>> GetHistoricalPricesAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct);
     Task<MarketSnapshot> GetReferenceSnapshotAsync(string yahooSymbol, CancellationToken ct) => throw new NotSupportedException("Reference quotes are not supported by this adapter.");
     Task<IReadOnlyList<HistoricalPrice>> GetReferenceHistoricalPricesAsync(string yahooSymbol, DateOnly from, DateOnly through, CancellationToken ct) => throw new NotSupportedException("Reference history is not supported by this adapter.");
+    async Task<ReferenceHistoryData> GetReferenceHistoryAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct)
+    {
+        var prices = await GetReferenceHistoricalPricesAsync(symbol, from, through, ct);
+        return new(prices, new("UNSPECIFIED", symbol, false, prices.Count < 2 ? "INSUFFICIENT" : "OHLCV",
+            null, from, through, DateTimeOffset.UtcNow, []));
+    }
     Task<bool> IsTradingDayAsync(DateOnly date, CancellationToken ct);
 }
 

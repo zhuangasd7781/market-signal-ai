@@ -163,3 +163,6 @@ npm run dev
 已加入由使用者／系統明確設定的通用 Market Reference mapping，提供 Reference Instruments 與商品 mappings 的 Backend CRUD。00631L 已設定 UNDERLYING `^TSE50`（臺灣50）及 BROAD_MARKET `^TWII`（TAIEX），可在同商品設定多個 SECTOR；沒有 mapping 時不推測。
 
 真實 GPT / DeepSeek 已收到完全相同的 Reference／Target／Position／previousDecisions，完整數值保存於 InputSnapshotJson。Yahoo 臺灣50最新報價成功，但本次 30 日日價僅一筆，Context 明確標為 PARTIAL。設計、API 使用、公開資料證據、78 項測試與本次分析 59／60 見 [Market Reference 說明](docs/market-references.md)。新版管理 API 位於本機 :5080；未更新 Docker image。
+
+
+TASK 1 歷史修正：Taiwan50 mapping 仍為 ^TSE50；Yahoo 日價不足時採用明確標示的 TWSE TAI50I close-only 歷史。本次取得 21 筆並完成 GPT / DeepSeek 真實驗證，來源與品質保存於 InputSnapshot。上述一筆日价是先前驗證記錄；目前設計、證據與限制見 [Taiwan50 歷史修正](docs/tse50-history.md)。

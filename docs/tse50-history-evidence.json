@@ -1,0 +1,1275 @@
+{
+  "investigatedAt": "2026-10-01",
+  "instrument": "^TSE50",
+  "discovery": [
+    {
+      "exchange": "TAI",
+      "shortname": "FUBON ASSET MANAGEMENT CO LTD F",
+      "quoteType": "ETF",
+      "symbol": "006208.TW",
+      "index": "quotes",
+      "score": 20064.0,
+      "typeDisp": "ETF",
+      "longname": "Fubon FTSE TWSE Taiwan 50 ETF",
+      "exchDisp": "Taiwan",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "TAI",
+      "shortname": "FTSE TWSE Taiwan 50 Index",
+      "quoteType": "INDEX",
+      "symbol": "^TSE50",
+      "index": "quotes",
+      "score": 20054.0,
+      "typeDisp": "Index",
+      "longname": "FTSE TWSE Taiwan 50 Index",
+      "exchDisp": "Taiwan",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "HKG",
+      "shortname": "PREMIA TW50A-U",
+      "quoteType": "ETF",
+      "symbol": "9159.HK",
+      "index": "quotes",
+      "score": 20004.0,
+      "typeDisp": "ETF",
+      "longname": "Premia Etf Series - Premia Ftse Twse Taiwan 50 Etf",
+      "exchDisp": "Hong Kong",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "FGI",
+      "shortname": "FTSE TWSE Taiwan 50 Index - USD",
+      "quoteType": "INDEX",
+      "symbol": "TW50U.FGI",
+      "index": "quotes",
+      "score": 20003.0,
+      "typeDisp": "Index",
+      "longname": "FTSE TWSE Taiwan 50 Index - USD",
+      "exchDisp": "FTSEGlobal Index",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "HKG",
+      "shortname": "PREMIA TW50",
+      "quoteType": "ETF",
+      "symbol": "3453.HK",
+      "index": "quotes",
+      "score": 20001.0,
+      "typeDisp": "ETF",
+      "longname": "Premia Etf Series - Premia Ftse Twse Taiwan 50 Etf",
+      "exchDisp": "Hong Kong",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "TAI",
+      "shortname": "FTSE TWSE Taiwan 50 30% Capped ",
+      "quoteType": "INDEX",
+      "symbol": "TW50C.TW",
+      "index": "quotes",
+      "score": 20001.0,
+      "typeDisp": "Index",
+      "longname": "FTSE TWSE Taiwan 50 30% Capped",
+      "exchDisp": "Taiwan",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "FGI",
+      "shortname": "FTSE TWSE Taiwan 50 30% Capped ",
+      "quoteType": "INDEX",
+      "symbol": "TW50C.FGI",
+      "index": "quotes",
+      "score": 20001.0,
+      "typeDisp": "Index",
+      "longname": "FTSE TWSE Taiwan 50 30% Capped",
+      "exchDisp": "FTSEGlobal Index",
+      "isYahooFinance": true
+    }
+  ],
+  "yahooRangeAndIntervalProbes": [
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=1mo",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "start": 1790832600,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1d",
+        "range": "1mo",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "low": [
+            44560.0390625
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "high": [
+            45044.73046875
+          ],
+          "volume": [
+            0
+          ],
+          "open": [
+            44560.0390625
+          ]
+        }
+      ],
+      "count": 1
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=3mo",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "start": 1790832600,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1d",
+        "range": "3mo",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "volume": [
+            0
+          ],
+          "open": [
+            44560.0390625
+          ],
+          "high": [
+            45044.73046875
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "low": [
+            44560.0390625
+          ]
+        }
+      ],
+      "count": 1
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=1y",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "start": 1790832600,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1d",
+        "range": "1y",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "low": [
+            44560.0390625
+          ],
+          "volume": [
+            0
+          ],
+          "open": [
+            44560.0390625
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "high": [
+            45044.73046875
+          ]
+        }
+      ],
+      "count": 1
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=max",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "start": 1790832600,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1y",
+        "range": "max",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "open": [
+            44560.0390625
+          ],
+          "low": [
+            44560.0390625
+          ],
+          "high": [
+            45044.73046875
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "volume": [
+            0
+          ]
+        }
+      ],
+      "count": 1
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1wk&range=3mo",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "end": 1790816400,
+            "start": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "end": 1790832600,
+            "start": 1790816400,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "end": 1790832600,
+            "start": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1wk",
+        "range": "3mo",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "open": [
+            44560.0390625
+          ],
+          "high": [
+            45044.73046875
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "volume": [
+            0
+          ],
+          "low": [
+            44560.0390625
+          ]
+        }
+      ],
+      "count": 1
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&period1=1788192000&period2=1790899200",
+      "status": 200,
+      "meta": {
+        "currency": "TWD",
+        "symbol": "^TSE50",
+        "exchangeName": "TAI",
+        "fullExchangeName": "Taiwan",
+        "instrumentType": "INDEX",
+        "firstTradeDate": null,
+        "regularMarketTime": 1790832890,
+        "hasPrePostMarketData": false,
+        "gmtoffset": 28800,
+        "timezone": "CST",
+        "exchangeTimezoneName": "Asia/Taipei",
+        "regularMarketPrice": 45041.66,
+        "regularMarketChangePercent": 1.081,
+        "fulldayPrice": 45041.66,
+        "fulldayChange": 481.621,
+        "fulldayChangePercent": 1.081,
+        "fiftyTwoWeekHigh": 45044.73,
+        "fiftyTwoWeekLow": 44560.04,
+        "regularMarketDayHigh": 45044.73,
+        "regularMarketDayLow": 44560.04,
+        "regularMarketVolume": 0,
+        "longName": "FTSE TWSE Taiwan 50 Index",
+        "shortName": "FTSE TWSE Taiwan 50 Index",
+        "chartPreviousClose": 44560.04,
+        "priceHint": 2,
+        "currentTradingPeriod": {
+          "pre": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790816400,
+            "gmtoffset": 28800
+          },
+          "regular": {
+            "timezone": "CST",
+            "start": 1790816400,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          },
+          "post": {
+            "timezone": "CST",
+            "start": 1790832600,
+            "end": 1790832600,
+            "gmtoffset": 28800
+          }
+        },
+        "dataGranularity": "1d",
+        "range": "",
+        "validRanges": [
+          "1d",
+          "5d"
+        ]
+      },
+      "timestamp": [
+        1790832890
+      ],
+      "quote": [
+        {
+          "open": [
+            44560.0390625
+          ],
+          "low": [
+            44560.0390625
+          ],
+          "close": [
+            45041.66015625
+          ],
+          "high": [
+            45044.73046875
+          ],
+          "volume": [
+            0
+          ]
+        }
+      ],
+      "count": 1
+    }
+  ],
+  "taipeiBoundaryProbe": {
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&period1=1788192000&period2=1790870400&includePrePost=true&events=history",
+    "status": 200,
+    "body": {
+      "chart": {
+        "result": [
+          {
+            "meta": {
+              "currency": "TWD",
+              "symbol": "^TSE50",
+              "exchangeName": "TAI",
+              "fullExchangeName": "Taiwan",
+              "instrumentType": "INDEX",
+              "firstTradeDate": null,
+              "regularMarketTime": 1790832890,
+              "hasPrePostMarketData": false,
+              "gmtoffset": 28800,
+              "timezone": "CST",
+              "exchangeTimezoneName": "Asia/Taipei",
+              "regularMarketPrice": 45041.66,
+              "regularMarketChangePercent": 1.081,
+              "fulldayPrice": 45041.66,
+              "fulldayChange": 481.621,
+              "fulldayChangePercent": 1.081,
+              "fiftyTwoWeekHigh": 45044.73,
+              "fiftyTwoWeekLow": 44560.04,
+              "regularMarketDayHigh": 45044.73,
+              "regularMarketDayLow": 44560.04,
+              "regularMarketVolume": 0,
+              "longName": "FTSE TWSE Taiwan 50 Index",
+              "shortName": "FTSE TWSE Taiwan 50 Index",
+              "chartPreviousClose": 44560.04,
+              "priceHint": 2,
+              "currentTradingPeriod": {
+                "pre": {
+                  "timezone": "CST",
+                  "end": 1790816400,
+                  "start": 1790816400,
+                  "gmtoffset": 28800
+                },
+                "regular": {
+                  "timezone": "CST",
+                  "end": 1790832600,
+                  "start": 1790816400,
+                  "gmtoffset": 28800
+                },
+                "post": {
+                  "timezone": "CST",
+                  "end": 1790832600,
+                  "start": 1790832600,
+                  "gmtoffset": 28800
+                }
+              },
+              "dataGranularity": "1d",
+              "range": "",
+              "validRanges": [
+                "1d",
+                "5d"
+              ]
+            },
+            "timestamp": [
+              1790832890
+            ],
+            "indicators": {
+              "quote": [
+                {
+                  "high": [
+                    45044.73046875
+                  ],
+                  "open": [
+                    44560.0390625
+                  ],
+                  "volume": [
+                    0
+                  ],
+                  "close": [
+                    45041.66015625
+                  ],
+                  "low": [
+                    44560.0390625
+                  ]
+                }
+              ],
+              "adjclose": [
+                {
+                  "adjclose": [
+                    45041.66015625
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "error": null
+      }
+    }
+  },
+  "secondaryEndpointAndOfficialReports": [
+    {
+      "url": "https://query2.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=1mo",
+      "status": 200,
+      "body": {
+        "chart": {
+          "result": [
+            {
+              "meta": {
+                "currency": "TWD",
+                "symbol": "^TSE50",
+                "exchangeName": "TAI",
+                "fullExchangeName": "Taiwan",
+                "instrumentType": "INDEX",
+                "firstTradeDate": null,
+                "regularMarketTime": 1790832890,
+                "hasPrePostMarketData": false,
+                "gmtoffset": 28800,
+                "timezone": "CST",
+                "exchangeTimezoneName": "Asia/Taipei",
+                "regularMarketPrice": 45041.66,
+                "regularMarketChangePercent": 1.081,
+                "fulldayPrice": 45041.66,
+                "fulldayChange": 481.621,
+                "fulldayChangePercent": 1.081,
+                "fiftyTwoWeekHigh": 45044.73,
+                "fiftyTwoWeekLow": 44560.04,
+                "regularMarketDayHigh": 45044.73,
+                "regularMarketDayLow": 44560.04,
+                "regularMarketVolume": 0,
+                "longName": "FTSE TWSE Taiwan 50 Index",
+                "shortName": "FTSE TWSE Taiwan 50 Index",
+                "chartPreviousClose": 44560.04,
+                "priceHint": 2,
+                "currentTradingPeriod": {
+                  "pre": {
+                    "timezone": "CST",
+                    "start": 1790816400,
+                    "end": 1790816400,
+                    "gmtoffset": 28800
+                  },
+                  "regular": {
+                    "timezone": "CST",
+                    "start": 1790816400,
+                    "end": 1790832600,
+                    "gmtoffset": 28800
+                  },
+                  "post": {
+                    "timezone": "CST",
+                    "start": 1790832600,
+                    "end": 1790832600,
+                    "gmtoffset": 28800
+                  }
+                },
+                "dataGranularity": "1d",
+                "range": "1mo",
+                "validRanges": [
+                  "1d",
+                  "5d"
+                ]
+              },
+              "timestamp": [
+                1790832890
+              ],
+              "indicators": {
+                "quote": [
+                  {
+                    "low": [
+                      44560.0390625
+                    ],
+                    "high": [
+                      45044.73046875
+                    ],
+                    "volume": [
+                      0
+                    ],
+                    "close": [
+                      45041.66015625
+                    ],
+                    "open": [
+                      44560.0390625
+                    ]
+                  }
+                ],
+                "adjclose": [
+                  {
+                    "adjclose": [
+                      45041.66015625
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "error": null
+        }
+      }
+    },
+    {
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1mo",
+      "status": 200,
+      "body": {
+        "chart": {
+          "result": [
+            {
+              "meta": {
+                "currency": "TWD",
+                "symbol": "^TWII",
+                "exchangeName": "TAI",
+                "fullExchangeName": "Taiwan",
+                "instrumentType": "INDEX",
+                "firstTradeDate": 867805200,
+                "regularMarketTime": 1790832795,
+                "hasPrePostMarketData": false,
+                "gmtoffset": 28800,
+                "timezone": "CST",
+                "exchangeTimezoneName": "Asia/Taipei",
+                "regularMarketPrice": 48353.49,
+                "regularMarketChangePercent": 0.862,
+                "fulldayPrice": 48353.49,
+                "fulldayChange": 413.359,
+                "fulldayChangePercent": 0.862,
+                "fiftyTwoWeekHigh": 48601.53,
+                "fiftyTwoWeekLow": 26330.25,
+                "regularMarketDayHigh": 48353.49,
+                "regularMarketDayLow": 47893.42,
+                "regularMarketVolume": 0,
+                "longName": "TSEC CAPITALIZATION WEIGHTED ST",
+                "shortName": "TSEC CAPITALIZATION WEIGHTED ST",
+                "chartPreviousClose": 46948.72,
+                "priceHint": 2,
+                "currentTradingPeriod": {
+                  "pre": {
+                    "timezone": "CST",
+                    "end": 1790816400,
+                    "start": 1790816400,
+                    "gmtoffset": 28800
+                  },
+                  "regular": {
+                    "timezone": "CST",
+                    "end": 1790832600,
+                    "start": 1790816400,
+                    "gmtoffset": 28800
+                  },
+                  "post": {
+                    "timezone": "CST",
+                    "end": 1790832600,
+                    "start": 1790832600,
+                    "gmtoffset": 28800
+                  }
+                },
+                "dataGranularity": "1d",
+                "range": "1mo",
+                "validRanges": [
+                  "1d",
+                  "5d",
+                  "1mo",
+                  "3mo",
+                  "6mo",
+                  "1y",
+                  "2y",
+                  "5y",
+                  "10y",
+                  "ytd",
+                  "max"
+                ]
+              },
+              "timestamp": [
+                1788224400,
+                1788310800,
+                1788397200,
+                1788483600,
+                1788742800,
+                1788829200,
+                1788915600,
+                1789002000,
+                1789088400,
+                1789347600,
+                1789434000,
+                1789520400,
+                1789606800,
+                1789693200,
+                1789952400,
+                1790038800,
+                1790125200,
+                1790211600,
+                1790643600,
+                1790730000,
+                1790816400
+              ],
+              "indicators": {
+                "quote": [
+                  {
+                    "open": [
+                      46177.109375,
+                      46901.3203125,
+                      46325.48046875,
+                      45991.28125,
+                      46724.0,
+                      47335.23828125,
+                      47142.73828125,
+                      47130.9609375,
+                      46651.2109375,
+                      46010.73828125,
+                      45847.26953125,
+                      45546.55859375,
+                      45936.109375,
+                      46449.55859375,
+                      47207.30078125,
+                      47981.0390625,
+                      47894.76953125,
+                      48075.390625,
+                      47873.890625,
+                      47767.48828125,
+                      47961.98046875
+                    ],
+                    "close": [
+                      46948.71875,
+                      46164.71875,
+                      45857.66015625,
+                      46551.12890625,
+                      47326.26953125,
+                      47105.78125,
+                      47183.359375,
+                      46940.48828125,
+                      46184.8515625,
+                      45862.51953125,
+                      45511.48828125,
+                      45848.8984375,
+                      46288.0,
+                      47180.75,
+                      47718.83984375,
+                      47800.171875,
+                      48157.2890625,
+                      48024.6015625,
+                      47631.9609375,
+                      47940.12890625,
+                      48353.48828125
+                    ],
+                    "low": [
+                      46081.109375,
+                      46164.71875,
+                      45839.359375,
+                      45966.859375,
+                      46724.0,
+                      47023.73046875,
+                      47060.78125,
+                      46573.46875,
+                      45942.44140625,
+                      45398.4296875,
+                      45491.96875,
+                      45546.55859375,
+                      45936.109375,
+                      46449.55859375,
+                      47207.30078125,
+                      47800.171875,
+                      47894.76953125,
+                      47754.71875,
+                      47573.08984375,
+                      47767.48828125,
+                      47893.421875
+                    ],
+                    "volume": [
+                      5018300,
+                      4100600,
+                      5351000,
+                      3967200,
+                      4656500,
+                      4458900,
+                      4443100,
+                      3857900,
+                      3896000,
+                      3400000,
+                      3225500,
+                      3326700,
+                      4395100,
+                      5651200,
+                      4475500,
+                      5924900,
+                      4866300,
+                      3540900,
+                      3781300,
+                      5111100,
+                      0
+                    ],
+                    "high": [
+                      46948.71875,
+                      46946.6015625,
+                      46517.44921875,
+                      46620.9609375,
+                      47429.578125,
+                      47578.23828125,
+                      47548.26171875,
+                      47130.9609375,
+                      46651.2109375,
+                      46050.23828125,
+                      46009.8515625,
+                      46077.8203125,
+                      46874.83984375,
+                      47180.75,
+                      47750.98046875,
+                      48601.53125,
+                      48341.55859375,
+                      48117.5390625,
+                      48045.12890625,
+                      48379.7109375,
+                      48353.48828125
+                    ]
+                  }
+                ],
+                "adjclose": [
+                  {
+                    "adjclose": [
+                      46948.71875,
+                      46164.71875,
+                      45857.66015625,
+                      46551.12890625,
+                      47326.26953125,
+                      47105.78125,
+                      47183.359375,
+                      46940.48828125,
+                      46184.8515625,
+                      45862.51953125,
+                      45511.48828125,
+                      45848.8984375,
+                      46288.0,
+                      47180.75,
+                      47718.83984375,
+                      47800.171875,
+                      48157.2890625,
+                      48024.6015625,
+                      47631.9609375,
+                      47940.12890625,
+                      48353.48828125
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "error": null
+        }
+      }
+    },
+    {
+      "url": "https://www.twse.com.tw/indicesReport/TAI50I?date=20260901&response=json",
+      "status": 200,
+      "body": {
+        "stat": "OK",
+        "date": "20260901",
+        "title": "臺灣50指數歷史資料",
+        "fields": [
+          "日期",
+          "臺灣50指數",
+          "臺灣50報酬指數"
+        ],
+        "data": [
+          [
+            "115/09/01",
+            "43,491.42",
+            "100,445.49"
+          ],
+          [
+            "115/09/02",
+            "42,630.12",
+            "98,456.28"
+          ],
+          [
+            "115/09/03",
+            "42,533.33",
+            "98,235.23"
+          ],
+          [
+            "115/09/04",
+            "43,141.07",
+            "99,638.85"
+          ],
+          [
+            "115/09/07",
+            "44,041.14",
+            "101,717.66"
+          ],
+          [
+            "115/09/08",
+            "43,900.29",
+            "101,392.35"
+          ],
+          [
+            "115/09/09",
+            "43,888.31",
+            "101,364.68"
+          ],
+          [
+            "115/09/10",
+            "43,698.24",
+            "100,925.71"
+          ],
+          [
+            "115/09/11",
+            "42,960.89",
+            "99,222.71"
+          ],
+          [
+            "115/09/14",
+            "42,642.85",
+            "98,488.18"
+          ],
+          [
+            "115/09/15",
+            "42,396.99",
+            "97,920.33"
+          ],
+          [
+            "115/09/16",
+            "42,607.03",
+            "98,571.10"
+          ],
+          [
+            "115/09/17",
+            "43,060.29",
+            "99,619.72"
+          ],
+          [
+            "115/09/18",
+            "43,906.80",
+            "101,578.13"
+          ],
+          [
+            "115/09/21",
+            "44,530.69",
+            "103,021.48"
+          ],
+          [
+            "115/09/22",
+            "44,574.88",
+            "103,123.71"
+          ],
+          [
+            "115/09/23",
+            "45,024.82",
+            "104,164.65"
+          ],
+          [
+            "115/09/24",
+            "44,827.02",
+            "103,707.05"
+          ],
+          [
+            "115/09/29",
+            "44,390.18",
+            "102,696.42"
+          ],
+          [
+            "115/09/30",
+            "44,560.04",
+            "103,089.40"
+          ]
+        ],
+        "total": 20
+      }
+    },
+    {
+      "url": "https://www.twse.com.tw/indicesReport/TAI50I?date=20261001&response=json",
+      "status": 200,
+      "body": {
+        "stat": "OK",
+        "date": "20261001",
+        "title": "臺灣50指數歷史資料",
+        "fields": [
+          "日期",
+          "臺灣50指數",
+          "臺灣50報酬指數"
+        ],
+        "data": [
+          [
+            "115/10/01",
+            "45,041.66",
+            "104,203.60"
+          ]
+        ],
+        "total": 1
+      }
+    },
+    {
+      "url": "https://openapi.twse.com.tw/v1/indicesReport/TAI50I",
+      "status": 200,
+      "body": [
+        {
+          "Date": "1150901",
+          "Taiwan50Index": "43491.42",
+          "Taiwan50TotalReturnIndex": "100445.49"
+        },
+        {
+          "Date": "1150902",
+          "Taiwan50Index": "42630.12",
+          "Taiwan50TotalReturnIndex": "98456.28"
+        },
+        {
+          "Date": "1150903",
+          "Taiwan50Index": "42533.33",
+          "Taiwan50TotalReturnIndex": "98235.23"
+        },
+        {
+          "Date": "1150904",
+          "Taiwan50Index": "43141.07",
+          "Taiwan50TotalReturnIndex": "99638.85"
+        },
+        {
+          "Date": "1150907",
+          "Taiwan50Index": "44041.14",
+          "Taiwan50TotalReturnIndex": "101717.66"
+        },
+        {
+          "Date": "1150908",
+          "Taiwan50Index": "43900.29",
+          "Taiwan50TotalReturnIndex": "101392.35"
+        },
+        {
+          "Date": "1150909",
+          "Taiwan50Index": "43888.31",
+          "Taiwan50TotalReturnIndex": "101364.68"
+        },
+        {
+          "Date": "1150910",
+          "Taiwan50Index": "43698.24",
+          "Taiwan50TotalReturnIndex": "100925.71"
+        },
+        {
+          "Date": "1150911",
+          "Taiwan50Index": "42960.89",
+          "Taiwan50TotalReturnIndex": "99222.71"
+        },
+        {
+          "Date": "1150914",
+          "Taiwan50Index": "42642.85",
+          "Taiwan50TotalReturnIndex": "98488.18"
+        },
+        {
+          "Date": "1150915",
+          "Taiwan50Index": "42396.99",
+          "Taiwan50TotalReturnIndex": "97920.33"
+        },
+        {
+          "Date": "1150916",
+          "Taiwan50Index": "42607.03",
+          "Taiwan50TotalReturnIndex": "98571.10"
+        },
+        {
+          "Date": "1150917",
+          "Taiwan50Index": "43060.29",
+          "Taiwan50TotalReturnIndex": "99619.72"
+        },
+        {
+          "Date": "1150918",
+          "Taiwan50Index": "43906.80",
+          "Taiwan50TotalReturnIndex": "101578.13"
+        },
+        {
+          "Date": "1150921",
+          "Taiwan50Index": "44530.69",
+          "Taiwan50TotalReturnIndex": "103021.48"
+        },
+        {
+          "Date": "1150922",
+          "Taiwan50Index": "44574.88",
+          "Taiwan50TotalReturnIndex": "103123.71"
+        },
+        {
+          "Date": "1150923",
+          "Taiwan50Index": "45024.82",
+          "Taiwan50TotalReturnIndex": "104164.65"
+        },
+        {
+          "Date": "1150924",
+          "Taiwan50Index": "44827.02",
+          "Taiwan50TotalReturnIndex": "103707.05"
+        },
+        {
+          "Date": "1150929",
+          "Taiwan50Index": "44390.18",
+          "Taiwan50TotalReturnIndex": "102696.42"
+        },
+        {
+          "Date": "1150930",
+          "Taiwan50Index": "44560.04",
+          "Taiwan50TotalReturnIndex": "103089.40"
+        }
+      ]
+    }
+  ],
+  "liveVerification": {
+    "snapshotId": 18,
+    "analysisIds": {
+      "deepseek": 68,
+      "openai": 69,
+      "claudeMock": 70
+    },
+    "inputSnapshotsEqual": true,
+    "historyCount": 21,
+    "historySource": "TWSE",
+    "sourceSymbol": "TAI50I",
+    "quality": "CLOSE_ONLY",
+    "from": "2026-09-01",
+    "through": "2026-10-01",
+    "newProviderFailures": 0
+  }
+}

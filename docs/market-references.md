@@ -111,3 +111,6 @@ Microsoft Edge headless 實際登入 http://127.0.0.1:5173，開啟 00631L 商�
 - schema／持倉 Validation 不等於模型敘述事實核對；原始分析文字保持可追溯，不將信心值當作校準機率。
 
 Yahoo 查證來源：[官方 Search](https://query1.finance.yahoo.com/v1/finance/search?q=FTSE%20TWSE%20Taiwan%2050&quotesCount=10&newsCount=0)、[臺灣50 Chart](https://query1.finance.yahoo.com/v8/finance/chart/%5ETSE50?interval=1d&range=1mo)、[TAIEX Chart](https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&range=1mo)。
+
+
+TASK 1 歷史修正：Taiwan50 mapping 仍為 ^TSE50；Yahoo 日價不足時採用明確標示的 TWSE TAI50I close-only 歷史。本次取得 21 筆並完成 GPT / DeepSeek 真實驗證，來源與品質保存於 InputSnapshot。上述一筆日价是先前驗證記錄；目前設計、證據與限制見 [Taiwan50 歷史修正](tse50-history.md)。

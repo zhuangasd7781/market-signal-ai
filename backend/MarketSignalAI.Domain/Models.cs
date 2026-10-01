@@ -18,6 +18,6 @@ public sealed record ProviderFailure(long UserId, long ProductId, long AIProvide
     string? ReasoningEffort, string Error, TokenUsage? Usage, DateTime CreatedAt);
 public sealed record MarketSnapshot(string Symbol, decimal Price, decimal Open, decimal High, decimal Low,
     decimal PreviousClose, long Volume, DateTimeOffset MarketTime, DateTimeOffset FetchedAt);
-public sealed record HistoricalPrice(DateOnly TradeDate, decimal Open, decimal High, decimal Low, decimal Close, long Volume);
+public sealed record HistoricalPrice(DateOnly TradeDate, decimal? Open, decimal? High, decimal? Low, decimal Close, long? Volume);
 public sealed record StoredMarketSnapshot(long Id, long ProductId, MarketSnapshot Snapshot);
 public sealed record TradingDay(DateOnly TradeDate, string Market, string Status, DateTimeOffset CheckedAt);

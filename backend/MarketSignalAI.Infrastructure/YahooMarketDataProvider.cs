@@ -69,9 +69,59 @@ public sealed class YahooMarketDataProvider(HttpClient http) : IMarketDataProvid
     public Task<IReadOnlyList<HistoricalPrice>> GetHistoricalPricesAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct) => HistoryAsync(Ticker(symbol), from, through, ct);
     public Task<IReadOnlyList<HistoricalPrice>> GetReferenceHistoricalPricesAsync(string yahooSymbol, DateOnly from, DateOnly through, CancellationToken ct)
     { MarketReferenceValidation.YahooSymbol(yahooSymbol); return HistoryAsync(yahooSymbol, from, through, ct); }
-    private async Task<IReadOnlyList<HistoricalPrice>> HistoryAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct)
+    public async Task<ReferenceHistoryData> GetReferenceHistoryAsync(string yahooSymbol, DateOnly from, DateOnly through, CancellationToken ct)
+    {
+        MarketReferenceValidation.YahooSymbol(yahooSymbol);
+        ValidateHistoryRange(from, through);
+        IReadOnlyList<HistoricalPrice> primary = [];
+        var attempts = new List<ReferenceHistoryAttempt>();
+        string? reason = null;
+        try
+        {
+            primary = await HistoryAsync(yahooSymbol, from, through, ct);
+            attempts.Add(new("YAHOO", yahooSymbol, primary.Count, null));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex) when (yahooSymbol == "^TSE50")
+        {
+            reason = SafeHistoryError("Yahoo", ex);
+            attempts.Add(new("YAHOO", yahooSymbol, null, reason));
+        }
+        // Instrument-specific source resolution belongs in the market adapter, never in an Analyst or Runner.
+        // TAI50I is the same price index, not the return index or an ETF proxy.
+        if (yahooSymbol == "^TSE50" && primary.Count < 2 && from < through)
+        {
+            reason ??= $"Yahoo supplied only {primary.Count} daily bars for the requested range.";
+            try
+            {
+                var official = await new TwseTaiwan50History(http).GetAsync(from, through, ct);
+                attempts.Add(new("TWSE", "TAI50I", official.Count, null));
+                if (official.Count >= 2 && official.Count >= primary.Count)
+                    return new(official, new("TWSE", "TAI50I", true, "CLOSE_ONLY", reason + " TWSE provides daily closing price-index values only; open/high/low/volume are unavailable.",
+                        from, through, DateTimeOffset.UtcNow, attempts));
+                reason += $" TWSE supplied only {official.Count} closing values; insufficient fallback was not selected.";
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                var error = SafeHistoryError("TWSE", ex);
+                attempts.Add(new("TWSE", "TAI50I", null, error));
+                reason += " " + error;
+            }
+        }
+        return new(primary, new("YAHOO", yahooSymbol, false, primary.Count < 2 ? "INSUFFICIENT" : "OHLCV", reason,
+            from, through, DateTimeOffset.UtcNow, attempts));
+    }
+
+    private static string SafeHistoryError(string source, Exception ex) =>
+        ex is HttpRequestException { StatusCode: { } status } ? $"{source} history returned HTTP {(int)status}." : $"{source} history unavailable ({ex.GetType().Name}).";
+    private static void ValidateHistoryRange(DateOnly from, DateOnly through)
     {
         if (from > through || through.DayNumber - from.DayNumber > 366) throw new ArgumentException("Invalid historical date range.");
+    }
+    private async Task<IReadOnlyList<HistoricalPrice>> HistoryAsync(string symbol, DateOnly from, DateOnly through, CancellationToken ct)
+    {
+        ValidateHistoryRange(from, through);
         var start = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
         var end = new DateTimeOffset(through.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).ToUnixTimeSeconds();
         using var doc = await ChartAsync(symbol, $"interval=1d&period1={start}&period2={end}", ct);
