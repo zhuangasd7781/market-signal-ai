@@ -11,6 +11,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { AISettings } from './AISettings';
 import { AnalysisScheduleSettings } from './AnalysisScheduleSettings';
 import { PromptSettings } from './PromptSettings';
+import { AnalysisHistory } from './AnalysisHistory';
 
 function AppShell() {
   const navigate = useNavigate();
@@ -128,7 +129,7 @@ function ProductDetail() {
   }
   return <><Link className="back" to="/">← 返回我的追蹤</Link>{error && <ErrorState message={error} retry={() => void load()} />}{!product ? !error && <LoadingState /> : <><div className="page-heading detail-heading"><div><span className="eyebrow">{product.market} / {product.assetType}{product.isLeveraged && ' / LEVERAGED'}</span><h1>{product.symbol}</h1><p>{product.name}</p></div><div>{confirmRemove ? <div className="confirm-remove"><span>移除追蹤？持倉與歷史會保留。</span><button disabled={busy} onClick={() => void changeWatch()}>確認移除</button><button onClick={() => setConfirmRemove(false)}>取消</button></div> : <button disabled={busy} onClick={() => tracked ? setConfirmRemove(true) : void changeWatch()}>{tracked ? '移除追蹤' : '＋ 加入追蹤'}</button>}</div></div>
       <PositionSection key={product.id} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。請留意模型與分析時間。</p></div><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div>
-      {analysisError && <ErrorState message={analysisError} retry={() => void load()} />}{showHistory && <section className="panel"><h3>分析歷史（最近 100 筆）</h3>{history?.length === 0 && <p className="muted">尚無分析紀錄。</p>}{history?.map(a => <div className="history-row" key={a.id}><span>{a.displayName}</span><SignalBadge action={a.result.action} quantity={a.result.quantity} /><time>{new Date(a.createdAt).toLocaleString('zh-TW')}</time></div>)}</section>}
+      {analysisError && <ErrorState message={analysisError} retry={() => void load()} />}{showHistory && <AnalysisHistory analyses={history ?? []} quantityUnit={product.quantityUnit} /> }
       <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); return a ? <AnalysisCard key={p.code} analysis={a} /> : <article className="analysis-card" key={p.code}><h3 className="provider-heading"><ProviderLogo code={p.code} />{p.displayName}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;
 }
 

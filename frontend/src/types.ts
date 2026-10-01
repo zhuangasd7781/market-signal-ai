@@ -8,6 +8,9 @@ export interface Position { quantity: number; averageCost: number; updatedAt: st
 export interface MarketQuote { symbol: string; price: number; open: number; high: number; low: number; previousClose: number; volume: number; marketTime: string; fetchedAt: string }
 export interface AnalysisView {
   id: number; provider: string; displayName: string; model: string; createdAt: string;
+  usage?: { inputTokens: number; outputTokens: number; cachedTokens: number | null } | null;
+  promptVersion?: string | null;
+  context?: AnalysisContext | null;
   result: {
     action: Action; quantity: number | null; confidence: number;
     rootEvent: { direction: string; status: string; summary: string };
@@ -15,4 +18,21 @@ export interface AnalysisView {
     reasons: string[]; risks: string[]; bullCase: string[]; bearCase: string[]; invalidation: string;
     nextActions: { condition: string; action: Action; quantity: number | null }[];
   };
+}
+
+export interface AnalysisContext {
+  targetPrice: number | null;
+  configuredModel: string | null;
+  promptVersionId: number | null;
+  skillIdentifiers: string[];
+  position: { quantity: number; averageCost: number } | null;
+  marketReferences: ReferenceEvidence[];
+}
+export interface ReferenceEvidence {
+  mappingId: number; referenceType: string; symbol: string; name: string; market: string;
+  currentValue: number | null; change: number | null; changePercent: number | null;
+  status: string; error: string | null;
+  snapshot: { marketTime: string; fetchedAt: string } | null;
+  history: { tradeDate: string; close: number }[];
+  historyMetadata?: { source: string; sourceSymbol: string; dataQuality: string; isFallback: boolean; reason: string | null } | null;
 }
