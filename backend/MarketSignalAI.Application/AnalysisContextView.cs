@@ -4,7 +4,7 @@ namespace MarketSignalAI.Application;
 
 public sealed record PositionContextView(decimal Quantity, decimal AverageCost);
 public sealed record AnalysisContextView(decimal? TargetPrice, IReadOnlyList<MarketReferenceContext> MarketReferences,
-    PositionContextView? Position, IReadOnlyList<string> SkillIdentifiers, string? ConfiguredModel, long? PromptVersionId);
+    PositionContextView? Position, IReadOnlyList<string> SkillIdentifiers, string? ConfiguredModel, long? PromptVersionId, TwMarketContext? TwMarketContext = null, TargetReturns? TargetReturns = null);
 internal static class AnalysisContextProjection
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { PropertyNameCaseInsensitive = true };
@@ -24,8 +24,10 @@ internal static class AnalysisContextProjection
             var skills = Find(root, "skillIdentifiers")?.Deserialize<string[]>(Options) ?? [];
             var configured = Find(root, "configuredModel")?.GetString();
             var id = Find(root, "promptVersionId")?.GetInt64();
+            var tw = Find(root, "twMarketContext")?.Deserialize<TwMarketContext>(Options);
+            var returns = Find(root, "targetReturns")?.Deserialize<TargetReturns>(Options);
             if (price is null && refs.Length == 0 && position is null && version is null) return (null, null);
-            return (version, new(price, refs, position, skills, configured, id));
+            return (version, new(price, refs, position, skills, configured, id, tw, returns));
         }
         catch (Exception e) when (e is JsonException or InvalidOperationException or FormatException or OverflowException) { return (null, null); }
     }

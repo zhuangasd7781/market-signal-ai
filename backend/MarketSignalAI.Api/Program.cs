@@ -22,6 +22,11 @@ builder.Services.AddHttpClient<IMarketDataProvider, YahooMarketDataProvider>(cli
     client.Timeout = TimeSpan.FromSeconds(12);
     client.DefaultRequestHeaders.UserAgent.ParseAdd("MarketSignalAI/1.0");
 });
+builder.Services.AddHttpClient<ITwMarketContextProvider, TwseMarketContextProvider>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("MarketSignalAI/1.0");
+});
 builder.Services.AddScoped<IMarketAnalysisRunner, MarketAnalysisRunner>();
 builder.Services.AddScoped<IMarketScheduleExecutor, MarketScheduleExecutor>();
 var openAI = builder.Configuration.GetSection("OpenAI").Get<OpenAIAnalystOptions>() ?? new();

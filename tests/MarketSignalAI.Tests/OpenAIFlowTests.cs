@@ -189,6 +189,7 @@ public sealed class OpenAIFlowTests
                 services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("deepseek"));
                 services.AddSingleton<IAIAnalyst>(new MockAIAnalyst("claude"));
                 services.RemoveAll<IMarketDataProvider>(); services.AddSingleton<IMarketDataProvider, TestMarket>();
+                services.RemoveAll<ITwMarketContextProvider>(); services.AddSingleton<ITwMarketContextProvider, OfflineTwMarketContextProvider>();
                 services.AddHttpClient<OpenAIAnalyst>().ConfigurePrimaryHttpMessageHandler(() => new OpenAIAnalystTests.Handler((_, _) =>
                     Task.FromResult(fail && !incomplete ? new HttpResponseMessage(HttpStatusCode.TooManyRequests) :
                         OpenAIAnalystTests.Json(OpenAIAnalystTests.Response(incomplete ? "incomplete" : "completed")))));

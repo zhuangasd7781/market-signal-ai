@@ -85,7 +85,9 @@ public sealed class PromptTests
                 using var json = JsonDocument.Parse(records.Single(x => x.Id == row.AnalysisId).InputSnapshotJson);
                 Assert.Equal(run == run1 ? seed.Version : "investment-analysis-v2", json.RootElement.GetProperty("promptVersion").GetString());
                 Assert.Equal(run == run1 ? seed.Content : "Second version core rules", json.RootElement.GetProperty("promptSnapshot").GetProperty("Content").GetString());
-                Assert.Equal(2, json.RootElement.GetProperty("skillIdentifiers").GetArrayLength());
+                var skills = json.RootElement.GetProperty("skillIdentifiers").EnumerateArray().Select(x => x.GetString()).ToArray();
+                Assert.Equal(3, skills.Length);
+                Assert.Contains(skills, x => x!.StartsWith("tw-market-context:", StringComparison.Ordinal));
             }
         }
         var views = await new SignalService(signals, new User()).GetAnalysisAsync(1, true, default);

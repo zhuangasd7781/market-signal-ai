@@ -25,6 +25,8 @@ public sealed class ApiFactory(Action<IServiceCollection>? services = null) : We
             // Existing API fixtures explicitly opt into mocks, never real external requests.
             s.RemoveAll<IAIAnalyst>();
             foreach(var code in new[]{"openai","deepseek","claude"})s.AddSingleton<IAIAnalyst>(new MockAIAnalyst(code));
+            s.RemoveAll<ITwMarketContextProvider>();
+            s.AddSingleton<ITwMarketContextProvider, OfflineTwMarketContextProvider>();
             s.RemoveAll<IAIProviderSettingsStore>();
             s.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore([new("openai",true,"test-openai"),new("deepseek",true,"test-deepseek"),new("claude",true,"mock-v1")]));
             services?.Invoke(s);

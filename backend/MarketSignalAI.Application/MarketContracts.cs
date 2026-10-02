@@ -33,6 +33,8 @@ public sealed record MarketContext(Product Product, MarketSnapshot Snapshot, IRe
     UserPosition? Position, Analysis? PreviousDecision)
 {
     public AnalysisPromptSnapshot? Prompt { get; init; }
+    public TwMarketContext? TwMarketContext { get; init; }
+    public TargetReturns? TargetReturns { get; init; }
     public IReadOnlyList<MarketReferenceContext> MarketReferences { get; init; } = [];
     public IReadOnlyList<PreviousProviderDecision> PreviousDecisions { get; init; } = [];
 }
