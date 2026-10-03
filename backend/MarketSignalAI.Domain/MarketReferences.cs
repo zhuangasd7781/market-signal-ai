@@ -18,3 +18,6 @@ public sealed record ReferenceHistoryMetadata(string Source, string SourceSymbol
     string DataQuality, string? Reason, DateOnly From, DateOnly Through, DateTimeOffset FetchedAt,
     IReadOnlyList<ReferenceHistoryAttempt> Attempts);
 public sealed record ReferenceHistoryData(IReadOnlyList<HistoricalPrice> Prices, ReferenceHistoryMetadata Metadata);
+
+public sealed record ReferenceQuoteMetadata(string Source, string SourceSymbol, string MarketStatus,
+    string PriceUnit, string VolumeUnit, int? DelayMinutes, string DataQuality, string InstrumentDescription);

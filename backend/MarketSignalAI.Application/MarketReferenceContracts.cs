@@ -23,7 +23,7 @@ public static class MarketReferenceValidation
     }
     public static void YahooSymbol(string symbol)
     {
-        if (string.IsNullOrWhiteSpace(symbol) || !Regex.IsMatch(symbol, @"\A[A-Z0-9^][A-Z0-9.^=_-]{0,63}\z"))
+        if (string.IsNullOrWhiteSpace(symbol) || !Regex.IsMatch(symbol, @"\A[A-Z0-9^][A-Z0-9.^=_&-]{0,63}\z"))
             throw new ArgumentException("Provide an exact Yahoo ticker of 1–64 uppercase letters/digits or . ^ = _ - characters.");
     }
     public static void Type(string value)

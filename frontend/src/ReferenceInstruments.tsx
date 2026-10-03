@@ -43,7 +43,7 @@ export function ReferenceInstruments() {
           body: JSON.stringify({ symbol: draft.symbol.trim(), name: draft.name.trim(), market: draft.market.trim() }),
         }), '共用市場標的已儲存');
       }}>
-        <label>Yahoo Symbol<input aria-label="Yahoo Symbol" required maxLength={64} pattern="[A-Z0-9^][A-Z0-9.^=_\-]*" value={draft.symbol} onChange={e => setDraft({ ...draft, symbol: e.target.value })} /></label>
+        <label>Yahoo Symbol<input aria-label="Yahoo Symbol" required maxLength={64} pattern="[A-Z0-9^][A-Z0-9.^=_&\-]*" value={draft.symbol} onChange={e => setDraft({ ...draft, symbol: e.target.value })} /></label>
         <label>名稱<input aria-label="標的名稱" required maxLength={200} value={draft.name} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
         <label>市場<input aria-label="標的市場" required maxLength={32} value={draft.market} onChange={e => setDraft({ ...draft, market: e.target.value })} /></label>
         <button className="primary" disabled={busy}>儲存標的</button><button type="button" disabled={busy} onClick={() => setDraft(undefined)}>取消</button>

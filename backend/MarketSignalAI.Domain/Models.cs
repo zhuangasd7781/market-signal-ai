@@ -17,7 +17,10 @@ public sealed record TokenUsage(long InputTokens, long OutputTokens, long? Cache
 public sealed record ProviderFailure(long UserId, long ProductId, long AIProviderId, string? Model,
     string? ReasoningEffort, string Error, TokenUsage? Usage, DateTime CreatedAt);
 public sealed record MarketSnapshot(string Symbol, decimal Price, decimal Open, decimal High, decimal Low,
-    decimal PreviousClose, long Volume, DateTimeOffset MarketTime, DateTimeOffset FetchedAt);
+    decimal PreviousClose, long Volume, DateTimeOffset MarketTime, DateTimeOffset FetchedAt)
+{
+    public ReferenceQuoteMetadata? QuoteMetadata { get; init; }
+}
 public sealed record HistoricalPrice(DateOnly TradeDate, decimal? Open, decimal? High, decimal? Low, decimal Close, long? Volume);
 public sealed record StoredMarketSnapshot(long Id, long ProductId, MarketSnapshot Snapshot);
 public sealed record TradingDay(DateOnly TradeDate, string Market, string Status, DateTimeOffset CheckedAt);

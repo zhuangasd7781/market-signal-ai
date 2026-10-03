@@ -15,6 +15,7 @@ internal sealed class ReferenceDataCache(IMarketDataProvider market)
             if(!snapshots.TryGetValue(instrument.Symbol,out var task)) snapshots[instrument.Symbol]=task=FetchSnapshotAsync(instrument.Symbol,ct);
             snapshot=await task;
             if(snapshot.Symbol!=instrument.Symbol) throw new InvalidDataException("Reference symbol mismatch.");
+            if(snapshot.QuoteMetadata?.DataQuality == "STALE") errors.Add("Reference intraday quote is stale; do not describe it as a current live trade.");
         }
         catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
         catch(Exception ex){snapshot=null;errors.Add(SafeError("quote",ex));}

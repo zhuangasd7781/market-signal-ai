@@ -90,6 +90,7 @@ public sealed class MarketReferenceTests
         var inputs=records.Where(x=>x.Model=="captured-live").Select(x=>JsonDocument.Parse(x.InputSnapshotJson).RootElement.GetProperty("analysisInput").GetRawText()).ToArray();
         Assert.Equal(2,inputs.Length);Assert.Equal(inputs[0],inputs[1]);
         Assert.Contains("marketReferences",inputs[0]);
+        if(!fail) { Assert.Contains("quoteMetadata",inputs[0]);Assert.Contains("CONTRACTS",inputs[0]); }
         await runner.RunProductAsync("00631L",default);Assert.Equal(2,market.ReferenceQuoteCalls);Assert.Equal(2,market.ReferenceHistoryCalls);
         Assert.Equal(2,gpt.Contexts.Last().PreviousDecisions.Count);
         Assert.Same(gpt.Contexts.Last(),deepseek.Contexts.Last());
@@ -128,7 +129,7 @@ public sealed class MarketReferenceTests
     {
         var context=OpenAIAnalystTests.Context() with
         {
-            MarketReferences=[new(1,"UNDERLYING","^TSE50","Taiwan50","TW",new("^TSE50",100,99,101,98,98,0,DateTimeOffset.UtcNow,DateTimeOffset.UtcNow),[],"PARTIAL","Sparse history")],
+            MarketReferences=[new(1,"UNDERLYING","^TSE50","Taiwan50","TW",new("^TSE50",100,99,101,98,98,0,DateTimeOffset.UtcNow,DateTimeOffset.UtcNow) { QuoteMetadata = new("YAHOO_TW", "^TSE50", "CLOSED", "INDEX_POINTS", "CONTRACTS", 0, "LATEST_CLOSED_QUOTE", "Test metadata") },[],"PARTIAL","Sparse history")],
             PreviousDecisions=[new("openai","previous-live",DateTime.UtcNow,DemoData.MockResult("HOLD",true))]
         };
         string? gptInput=null,deepseekInput=null;
@@ -138,7 +139,7 @@ public sealed class MarketReferenceTests
         {using var body=JsonDocument.Parse(await req.Content!.ReadAsStringAsync(ct));deepseekInput=body.RootElement.GetProperty("messages")[1].GetProperty("content").GetString();return OpenAIAnalystTests.Json(DeepSeekAnalystTests.Response());}));
         await new OpenAIAnalyst(gptHttp,OpenAIAnalystTests.Options()).AnalyzeAsync(context,default);
         await new DeepSeekAnalyst(deepHttp,DeepSeekAnalystTests.Options()).AnalyzeAsync(context,default);
-        Assert.Equal(gptInput,deepseekInput);Assert.Contains("^TSE50",gptInput!);Assert.Contains("previousDecisions",gptInput!);
+        Assert.Equal(gptInput,deepseekInput);Assert.Contains("^TSE50",gptInput!);Assert.Contains("previousDecisions",gptInput!);Assert.Contains("quoteMetadata",gptInput!);Assert.Contains("LATEST_CLOSED_QUOTE",gptInput!);
     }
     private sealed class CaptureAnalyst(string code) : IAIAnalyst
     {
@@ -153,7 +154,7 @@ public sealed class MarketReferenceTests
         public Task<IReadOnlyList<HistoricalPrice>> GetHistoricalPricesAsync(string symbol,DateOnly from,DateOnly through,CancellationToken ct)=>Task.FromResult<IReadOnlyList<HistoricalPrice>>([]);
         public Task<bool> IsTradingDayAsync(DateOnly date,CancellationToken ct)=>Task.FromResult(true);
         public Task<MarketSnapshot> GetReferenceSnapshotAsync(string symbol,CancellationToken ct)
-        {ReferenceQuoteCalls++;if(FailReference)throw new HttpRequestException("upstream",null,HttpStatusCode.NotFound);return Task.FromResult(new MarketSnapshot(symbol,100,99,101,98,98,0,DateTimeOffset.Parse("2026-10-01T05:30:00Z"),DateTimeOffset.UtcNow));}
+        {ReferenceQuoteCalls++;if(FailReference)throw new HttpRequestException("upstream",null,HttpStatusCode.NotFound);return Task.FromResult(new MarketSnapshot(symbol,100,99,101,98,98,0,DateTimeOffset.Parse("2026-10-01T05:30:00Z"),DateTimeOffset.UtcNow) { QuoteMetadata = new("YAHOO_TW", symbol, "CLOSED", "INDEX_POINTS", "CONTRACTS", 0, "LATEST_CLOSED_QUOTE", "Test evidence") });}
         public Task<IReadOnlyList<HistoricalPrice>> GetReferenceHistoricalPricesAsync(string symbol,DateOnly from,DateOnly through,CancellationToken ct)
         {ReferenceHistoryCalls++;return Task.FromResult<IReadOnlyList<HistoricalPrice>>([new(through.AddDays(-1),98,99,97,98,0),new(through,99,101,98,100,0)]);}
     }

@@ -32,7 +32,7 @@ export interface ReferenceEvidence {
   mappingId: number; referenceType: string; symbol: string; name: string; market: string;
   currentValue: number | null; change: number | null; changePercent: number | null;
   status: string; error: string | null;
-  snapshot: { marketTime: string; fetchedAt: string } | null;
+  snapshot: { marketTime: string; fetchedAt: string; quoteMetadata?: { source: string; marketStatus: string; volumeUnit: string; delayMinutes: number | null; dataQuality: string } | null } | null;
   history: { tradeDate: string; close: number }[];
   historyMetadata?: { source: string; sourceSymbol: string; dataQuality: string; isFallback: boolean; reason: string | null } | null;
 }

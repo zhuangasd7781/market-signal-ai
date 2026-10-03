@@ -8,7 +8,7 @@ const analysisLabels: Record<string, string> = {
   UNKNOWN: '資料不足',
   ACTIVE: '已確認', EXPECTED: '預期中', INVALIDATED: '已失效', UNVERIFIED: '尚未確認',
   AVAILABLE: '可用', PARTIAL: '部分可用', UNAVAILABLE: '無法取得',
-  OPEN: '開市', CLOSED: '休市', COMPLETE: '完整', CLOSE_ONLY: '僅收盤價',
+  OPEN: '開市', CLOSED: '休市', COMPLETE: '完整', CLOSE_ONLY: '僅收盤價', INSUFFICIENT: '資料不足', INTRADAY: '盤中行情', LATEST_CLOSED_QUOTE: '休市最近行情',
   STALE: '非最新交易日', MISSING: '未提供', FALLBACK: '替代來源',
 };
 export const analysisValueText = (value: string) => analysisLabels[value] ?? value;
@@ -49,6 +49,8 @@ const errors: Record<string, string> = {
 };
 export function errorText(message: string, status?: number) {
   if (errors[message]) return errors[message];
+  if (/Intraday quote is available through Yahoo Taiwan/.test(message)) return '可取得 Yahoo 台灣盤中行情；日線歷史尚未驗證，無法據此判斷歷史趨勢。';
+  if (/YAHOO_TW supplied only 0 daily bars/.test(message)) return '盤中行情可用，缺少日線歷史；期貨夜盤與商品行情日期可能不同，請留意行情時間。';
   const http = message.match(/HTTP (\d{3})/);
   if (http) return `資料服務回應錯誤（HTTP ${http[1]}），請稍後再試。`;
   if (/Yahoo reference (quote|history) unavailable/.test(message)) return '目前無法取得 Yahoo 市場參考資料。';

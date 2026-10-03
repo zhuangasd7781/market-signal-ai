@@ -40,7 +40,7 @@ public sealed class YahooMarketDataProvider(HttpClient http) : IMarketDataProvid
 
     public Task<MarketSnapshot> GetSnapshotAsync(string symbol, CancellationToken ct) => SnapshotAsync(symbol, Ticker(symbol), ct);
     public Task<MarketSnapshot> GetReferenceSnapshotAsync(string yahooSymbol, CancellationToken ct)
-    { MarketReferenceValidation.YahooSymbol(yahooSymbol); return SnapshotAsync(yahooSymbol, yahooSymbol, ct); }
+    { MarketReferenceValidation.YahooSymbol(yahooSymbol); return yahooSymbol.Contains('&') ? new YahooTaiwanIntradayQuote(http).GetAsync(yahooSymbol, ct) : SnapshotAsync(yahooSymbol, yahooSymbol, ct); }
     private async Task<MarketSnapshot> SnapshotAsync(string symbol, string ticker, CancellationToken ct)
     {
         using var doc = await ChartAsync(ticker, "interval=1m&range=1d", ct);
@@ -73,6 +73,10 @@ public sealed class YahooMarketDataProvider(HttpClient http) : IMarketDataProvid
     {
         MarketReferenceValidation.YahooSymbol(yahooSymbol);
         ValidateHistoryRange(from, through);
+        if (yahooSymbol.Contains('&'))
+            return new([], new("YAHOO_TW", yahooSymbol, false, "INSUFFICIENT",
+                "Intraday quote is available through Yahoo Taiwan; compatible daily reference history is not verified. Do not infer historical trend from this quote.",
+                from, through, DateTimeOffset.UtcNow, []));
         IReadOnlyList<HistoricalPrice> primary = [];
         var attempts = new List<ReferenceHistoryAttempt>();
         string? reason = null;
