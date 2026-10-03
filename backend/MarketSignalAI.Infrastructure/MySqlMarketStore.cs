@@ -24,6 +24,13 @@ public sealed class MySqlMarketStore(string connectionString) : IMarketStore
             foreach (var statement in sql.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 if (!string.IsNullOrWhiteSpace(statement)) await db.ExecuteAsync(Cmd(statement, null, ct));
         }
+        var newsColumn = await db.ExecuteScalarAsync<int>(Cmd("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='AIAnalysisResults' AND COLUMN_NAME='NewsContextId'", null, ct));
+        if (newsColumn == 0)
+        {
+            using var stream = typeof(MySqlMarketStore).Assembly.GetManifestResourceStream("MarketSignalAI.Infrastructure.Migrations.010_analysis_news_context.sql")!;
+            using var reader = new StreamReader(stream);
+            await db.ExecuteAsync(Cmd(await reader.ReadToEndAsync(ct), null, ct));
+        }
         foreach (var table in new[] { "AIAnalysisUsage", "AIProviderFailures" })
         {
             var exists = await db.ExecuteScalarAsync<int>(Cmd("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=@table AND COLUMN_NAME='CachedTokens'", new { table }, ct));
@@ -83,12 +90,12 @@ public sealed class MySqlMarketStore(string connectionString) : IMarketStore
         await db.OpenAsync(ct);
         await using var transaction = await db.BeginTransactionAsync(ct);
         var id = await db.ExecuteScalarAsync<long>(new CommandDefinition("""
-            INSERT INTO AIAnalysisResults(UserId,ProductId,AIProviderId,Model,Action,Quantity,Confidence,AnalysisJson,InputSnapshotJson,RawResponse,CreatedAt)
-            VALUES(@UserId,@ProductId,@AIProviderId,@Model,@Action,@Quantity,@Confidence,@AnalysisJson,@InputSnapshotJson,@RawResponse,@CreatedAt);
+            INSERT INTO AIAnalysisResults(UserId,ProductId,AIProviderId,Model,Action,Quantity,Confidence,AnalysisJson,InputSnapshotJson,RawResponse,CreatedAt,NewsContextId)
+            VALUES(@UserId,@ProductId,@AIProviderId,@Model,@Action,@Quantity,@Confidence,@AnalysisJson,@InputSnapshotJson,@RawResponse,@CreatedAt,@NewsContextId);
             SELECT LAST_INSERT_ID();
             """, new { result.UserId, result.ProductId, result.AIProviderId, result.Model,
                 result.Result.Action, result.Result.Quantity, result.Result.Confidence,
-                AnalysisJson = JsonSerializer.Serialize(result.Result), result.InputSnapshotJson, result.RawResponse, result.CreatedAt },
+                AnalysisJson = JsonSerializer.Serialize(result.Result), result.InputSnapshotJson, result.RawResponse, result.CreatedAt, result.NewsContextId },
                 transaction, cancellationToken: ct));
         if (result.Usage is { } usage)
             await db.ExecuteAsync(new CommandDefinition("INSERT INTO AIAnalysisUsage(AnalysisId,InputTokens,OutputTokens,CachedTokens) VALUES(@id,@InputTokens,@OutputTokens,@CachedTokens)",

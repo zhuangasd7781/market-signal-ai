@@ -7,14 +7,16 @@ namespace MarketSignalAI.Infrastructure;
 
 public sealed class MarketAnalysisRunner(
     IMarketDataProvider marketData, IMarketStore marketStore, ISignalStore signals,
-    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null, IAIProviderSettingsStore? settings = null, IPromptStore? prompts = null, ITwMarketContextProvider? twMarket = null) : IMarketAnalysisRunner
+    IEnumerable<IAIAnalyst> analysts, ILogger<MarketAnalysisRunner> logger, IMarketReferenceStore? references = null, IAIProviderSettingsStore? settings = null, IPromptStore? prompts = null, ITwMarketContextProvider? twMarket = null, INewsEvidenceResolver? newsEvidence = null) : IMarketAnalysisRunner
 {
     public Task<ProductRunResult> RunProductAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate = null) =>
         RunProductCoreAsync(symbol, ct, expectedTradeDate, new ReferenceDataCache(marketData),
             new TwMarketContextBatchCache(twMarket));
     public Task<ProductRunResult> RunProductAsync(string symbol,IReadOnlyList<string>? providers,CancellationToken ct) =>
         RunProductCoreAsync(symbol,ct,null,new ReferenceDataCache(marketData),new TwMarketContextBatchCache(twMarket),providers);
-    private async Task<ProductRunResult> RunProductCoreAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate, ReferenceDataCache referenceCache, TwMarketContextBatchCache twCache, IReadOnlyList<string>? requested = null)
+    public Task<ProductRunResult> RunProductAsync(string symbol, IReadOnlyList<string>? providers, bool refreshNewsBeforeAnalysis, CancellationToken ct) =>
+        RunProductCoreAsync(symbol, ct, null, new ReferenceDataCache(marketData), new TwMarketContextBatchCache(twMarket), providers, refreshNewsBeforeAnalysis);
+    private async Task<ProductRunResult> RunProductCoreAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate, ReferenceDataCache referenceCache, TwMarketContextBatchCache twCache, IReadOnlyList<string>? requested = null, bool refreshNewsBeforeAnalysis = false, NewsEvidenceContext? resolvedNews = null)
     {
         var product = await signals.GetProductAsync(symbol, "TW", ct) ?? throw new KeyNotFoundException("找不到台股商品。");
         var users = await marketStore.GetTrackingUserIdsAsync(product.Id, ct);
@@ -35,6 +37,7 @@ public sealed class MarketAnalysisRunner(
                 throw new ArgumentException("A requested provider is disabled. Enable it in AI settings first.");
             plans[userId]=rows;
         }
+        var newsContext = resolvedNews ?? (newsEvidence is null ? null : await newsEvidence.ResolveAsync(refreshNewsBeforeAnalysis, ct));
         logger.LogInformation("Product fetching {Symbol}", symbol);
         var snapshot = await marketData.GetSnapshotAsync(product.Symbol, ct);
         if (snapshot.Symbol != product.Symbol) throw new InvalidDataException("Market symbol mismatch.");
@@ -88,7 +91,7 @@ public sealed class MarketAnalysisRunner(
             var promptSnapshot = AnalysisProtocol.CapturePrompt(activePrompt, product.IsLeveraged);
             var context = new MarketContext(product, snapshot, history, position, null)
             { MarketReferences = referenceContexts.ToArray(), PreviousDecisions = prior, Prompt = promptSnapshot,
-                TwMarketContext = twContext, TargetReturns = targetReturns };
+                TwMarketContext = twContext, TargetReturns = targetReturns, NewsContext = newsContext };
             var sharedInput = JsonSerializer.Deserialize<JsonElement>(AnalysisProtocol.Input(context));
             var providerSettings=plans[userId];
             foreach (var provider in enabled.Where(p=>(selection is null || selection.Contains(p.Code)) &&
@@ -110,9 +113,9 @@ public sealed class MarketAnalysisRunner(
                     timeout.CancelAfter(analyst.Timeout);
                     var answer = await analyst.AnalyzeAsync(context, timeout.Token);
                     AnalysisResultValidator.Validate(answer);
-                    var input = JsonSerializer.Serialize(new { promptVersion = promptSnapshot.Version, promptVersionId = promptSnapshot.Id, promptSnapshot, skillIdentifiers = promptSnapshot.Skills.Select(x => x.Identifier).ToArray(), configuredModel = configured?.ConfiguredModel ?? analyst.Model, isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, twMarketContext = twContext, targetReturns, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
+                    var input = JsonSerializer.Serialize(new { promptVersion = promptSnapshot.Version, promptVersionId = promptSnapshot.Id, promptSnapshot, skillIdentifiers = promptSnapshot.Skills.Select(x => x.Identifier).ToArray(), configuredModel = configured?.ConfiguredModel ?? analyst.Model, isMock = answer.Model.StartsWith("mock", StringComparison.OrdinalIgnoreCase), product, snapshot, history, position, previousDecision = context.PreviousDecision, marketReferences = context.MarketReferences, previousDecisions = context.PreviousDecisions, analysisInput = sharedInput, twMarketContext = twContext, targetReturns, newsContext, instructions = answer.Instructions, reasoningEffort = answer.ReasoningEffort });
                     var savedAnalysis = await marketStore.SaveAnalysisAsync(new(0, userId, product.Id, provider.Id,
-                        answer.Model, answer.Analysis, input, answer.RawResponse, DateTime.UtcNow, answer.Usage), ct);
+                        answer.Model, answer.Analysis, input, answer.RawResponse, DateTime.UtcNow, answer.Usage, newsContext?.NewsContextId), ct);
                     outcomes.Add(new(provider.Code, "COMPLETED", savedAnalysis.Id, null, answer.Model, answer.Analysis, answer.Usage, configured?.ConfiguredModel ?? analyst.Model));
                     logger.LogInformation("AI analysis completed {Symbol} {Provider} {AnalysisId} {Model} {InputTokens} {OutputTokens}",
                         symbol, provider.Code, savedAnalysis.Id, answer.Model, answer.Usage?.InputTokens, answer.Usage?.OutputTokens);
@@ -144,10 +147,11 @@ public sealed class MarketAnalysisRunner(
         var completed = new List<ProductRunResult>(); var failed = new List<ProductRunFailure>();
         var referenceCache = new ReferenceDataCache(marketData);
         var twCache = new TwMarketContextBatchCache(twMarket);
+        var batchNews = newsEvidence is null ? null : await newsEvidence.ResolveAsync(false, ct);
         foreach (var product in products)
         {
             ct.ThrowIfCancellationRequested();
-            try { completed.Add(await RunProductCoreAsync(product.Symbol, ct, expectedTradeDate, referenceCache, twCache)); }
+            try { completed.Add(await RunProductCoreAsync(product.Symbol, ct, expectedTradeDate, referenceCache, twCache, resolvedNews: batchNews)); }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
             catch (Exception ex) { logger.LogError(ex, "Product analysis failed {Symbol}", product.Symbol); failed.Add(new(product.Symbol, ex.Message)); }
         }

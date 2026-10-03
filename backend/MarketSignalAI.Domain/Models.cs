@@ -12,7 +12,7 @@ public sealed record Analysis(
     string[] Reasons, string[] Risks, string[] BullCase, string[] BearCase,
     string Invalidation, NextAction[] NextActions);
 public sealed record AnalysisRecord(long Id, long UserId, long ProductId, long AIProviderId,
-    string Model, Analysis Result, string InputSnapshotJson, string RawResponse, DateTime CreatedAt, TokenUsage? Usage = null);
+    string Model, Analysis Result, string InputSnapshotJson, string RawResponse, DateTime CreatedAt, TokenUsage? Usage = null, long? NewsContextId = null);
 public sealed record TokenUsage(long InputTokens, long OutputTokens, long? CachedTokens = null);
 public sealed record ProviderFailure(long UserId, long ProductId, long AIProviderId, string? Model,
     string? ReasoningEffort, string Error, TokenUsage? Usage, DateTime CreatedAt);

@@ -56,3 +56,17 @@
 .topbar nav { display: flex; gap: 24px; flex-shrink: 0; }
 .news-load-more { text-align: center; padding: 24px 0; color: var(--muted); font-size: .85rem; }
 @media (max-width: 600px) { .topbar nav { gap: 12px; } }
+
+.analysis-news-evidence { margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; overflow-wrap: anywhere; }
+.force-analysis-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.force-analysis-controls label { display: flex; align-items: center; gap: 8px; }
+.force-analysis-controls input { width: auto; }
+.force-analysis-controls p { flex-basis: 100%; margin: 0; }
+
+.analysis-news-group + .analysis-news-group { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+.analysis-heading { flex-wrap: wrap; }
+.analysis-heading-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: auto; }
+.analysis-heading-actions button { white-space: nowrap; }
+
+.reference-heading-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; max-width: 100%; }

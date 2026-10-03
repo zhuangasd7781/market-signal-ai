@@ -78,7 +78,7 @@ public sealed class MySqlSignalStore(string connectionString) : ISignalStore
         return rows.Select(x => new AnalysisRecord(x.Id, x.UserId, x.ProductId, x.AIProviderId, x.Model,
             JsonSerializer.Deserialize<Analysis>(x.AnalysisJson) ?? throw new InvalidOperationException("Invalid stored analysis."),
             x.InputSnapshotJson, x.RawResponse, DateTime.SpecifyKind(x.CreatedAt, DateTimeKind.Utc),
-            x.InputTokens is { } input && x.OutputTokens is { } output ? new TokenUsage(input, output, x.CachedTokens) : null)).ToArray();
+            x.InputTokens is { } input && x.OutputTokens is { } output ? new TokenUsage(input, output, x.CachedTokens) : null, x.NewsContextId)).ToArray();
     }
     public async Task<bool> IsHealthyAsync(CancellationToken ct)
     {
@@ -120,6 +120,7 @@ public sealed class MySqlSignalStore(string connectionString) : ISignalStore
         public long AIProviderId { get; set; }
         public string Model { get; set; } = "";
         public string AnalysisJson { get; set; } = "";
+        public long? NewsContextId { get; set; }
         public string InputSnapshotJson { get; set; } = "";
         public string RawResponse { get; set; } = "";
         public DateTime CreatedAt { get; set; }

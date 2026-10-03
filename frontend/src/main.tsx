@@ -1,5 +1,6 @@
+import { ProductNewsEvidence } from './AnalysisNewsEvidence';
 import { AnalysisStatusGrid } from './AnalysisStatusGrid';
-import { StrictMode, useCallback, useEffect, useState } from 'react';
+import { StrictMode, useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api, apiOptional } from './api';
@@ -107,6 +108,8 @@ function ProductDetail() {
   const [showHistory, setShowHistory] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tracked, setTracked] = useState(false);
+  const [forceMessage, setForceMessage] = useState('');
+  const forceSubmitting = useRef(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const base = `/products/${encodeURIComponent(symbol)}`;
   const query = `?market=${encodeURIComponent(market)}`;
@@ -128,6 +131,20 @@ function ProductDetail() {
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
+  async function forceAnalysis() {
+    if (forceSubmitting.current) return;
+    forceSubmitting.current = true;
+    setBusy(true); setAnalysisError(''); setForceMessage('');
+    try {
+      const result = await api<{ providers: { provider: string; status: string; error: string | null }[] }>(base + '/analysis/force', {
+        method: 'POST', body: JSON.stringify({})
+      });
+      await load(); setHistory(null); setShowHistory(false);
+      const failed = result.providers.filter(row => row.status !== 'COMPLETED');
+      setForceMessage(result.providers.length === 0 ? '沒有已啟用的 AI 服務，未執行分析。' : failed.length ? `分析已完成；${failed.map(row => row.provider).join('、')} 未成功，請查看服務狀態。` : '分析已完成。');
+    } catch (e) { setAnalysisError((e as Error).message); }
+    finally { forceSubmitting.current = false; setBusy(false); }
+  }
   async function toggleHistory() {
     if (showHistory) { setShowHistory(false); return; }
     setBusy(true);
@@ -136,8 +153,10 @@ function ProductDetail() {
     finally { setBusy(false); }
   }
   return <><Link className="back" to="/">← 返回我的追蹤</Link>{error && <ErrorState message={error} retry={() => void load()} />}{!product ? !error && <LoadingState /> : <><div className="page-heading detail-heading"><div><span className="eyebrow">{marketText(product.market)} / {assetTypeText(product.assetType)}{product.isLeveraged && ' / 槓桿'}</span><h1>{product.symbol}</h1><p>{product.name}</p></div><div>{confirmRemove ? <div className="confirm-remove"><span>移除追蹤？持倉與歷史會保留。</span><button disabled={busy} onClick={() => void changeWatch()}>確認移除</button><button onClick={() => setConfirmRemove(false)}>取消</button></div> : <button disabled={busy} onClick={() => tracked ? setConfirmRemove(true) : void changeWatch()}>{tracked ? '移除追蹤' : '＋ 加入追蹤'}</button>}</div></div>
-      <PositionSection key={product.id} product={product} /><MarketReferences key={`references-${product.id}`} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。請留意模型與分析時間。</p></div><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div>
+      <PositionSection key={product.id} product={product} /><MarketReferences key={`references-${product.id}`} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。請留意模型與分析時間。</p></div><div className="analysis-heading-actions"><button className="primary" disabled={busy || !tracked} onClick={() => void forceAnalysis()}>{busy ? '處理中…' : '強制分析'}</button><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div></div>
+      {forceMessage && <div className="force-analysis-controls"><p role="status">{forceMessage}</p></div>}
       {analysisError && <ErrorState message={analysisError} retry={() => void load()} />}{showHistory && <AnalysisHistory analyses={history ?? []} quantityUnit={product.quantityUnit} /> }
+      <ProductNewsEvidence analyses={analyses.filter(a => providers.some(p => p.code === a.provider))} />
       <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); const enabled = providerSettings[p.code.toLowerCase()] ?? true; return a ? <AnalysisCard key={p.code} analysis={a} enabled={enabled} /> : <article className="analysis-card" key={p.code}><h3 className={`provider-heading${enabled ? '' : ' provider-heading--disabled'}`}><ProviderLogo code={p.code} />{p.displayName}{!enabled && <span className="provider-state">未啟用</span>}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;
 }
 

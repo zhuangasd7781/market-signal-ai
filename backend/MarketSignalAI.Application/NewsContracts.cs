@@ -21,6 +21,11 @@ public interface INewsContextStore
 {
     Task<NewsContext> AppendAsync(NewsContext context, NewsRefreshAudit audit, CancellationToken ct);
     Task<NewsContext?> GetLatestAsync(CancellationToken ct);
+    async Task<NewsContext?> GetLatestValidAsync(CancellationToken ct)
+    {
+        var latest = await GetLatestAsync(ct);
+        return latest?.Status is "AVAILABLE" or "PARTIAL" ? latest : null;
+    }
     Task<NewsContext?> GetAsync(long id, CancellationToken ct);
     Task AppendFailureAsync(NewsRefreshFailure failure, CancellationToken ct);
 }

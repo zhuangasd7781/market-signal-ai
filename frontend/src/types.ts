@@ -27,6 +27,7 @@ export interface AnalysisContext {
   skillIdentifiers: string[];
   position: { quantity: number; averageCost: number } | null;
   marketReferences: ReferenceEvidence[];
+  newsContext?: NewsEvidenceContext | null;
 }
 export interface ReferenceEvidence {
   mappingId: number; referenceType: string; symbol: string; name: string; market: string;
@@ -35,4 +36,11 @@ export interface ReferenceEvidence {
   snapshot: { marketTime: string; fetchedAt: string; quoteMetadata?: { source: string; marketStatus: string; volumeUnit: string; delayMinutes: number | null; dataQuality: string } | null } | null;
   history: { tradeDate: string; close: number }[];
   historyMetadata?: { source: string; sourceSymbol: string; dataQuality: string; isFallback: boolean; reason: string | null } | null;
+}
+
+export interface NewsEvidenceContext {
+  newsContextId: number | null; generatedAt: string | null; windowStart: string | null; windowEnd: string | null;
+  status: string; freshness: string; resolvedAt: string; maxAgeMinutes: number;
+  newsRefreshFailed: boolean; limitation: string | null; eventCount: number;
+  events: import('./NewsIntelligence').NewsContext['events'];
 }

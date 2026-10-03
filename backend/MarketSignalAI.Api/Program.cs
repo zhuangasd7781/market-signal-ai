@@ -22,6 +22,10 @@ if(news.MaxInputArticles is <3 or >150) throw new InvalidOperationException("New
 builder.Services.AddSingleton(news);
 builder.Services.AddSingleton<NewsRefreshGate>();
 builder.Services.AddScoped<INewsContextRefresher, NewsContextRefresher>();
+var newsIntelligence = builder.Configuration.GetSection("NewsIntelligence").Get<NewsIntelligenceOptions>() ?? new();
+if (newsIntelligence.MaxAgeMinutes <= 0) throw new InvalidOperationException("NewsIntelligence:MaxAgeMinutes must be positive.");
+builder.Services.AddSingleton(newsIntelligence);
+builder.Services.AddScoped<INewsEvidenceResolver, NewsEvidenceResolver>();
 builder.Services.AddHttpClient<INewsSearchProvider,RssNewsSearchProvider>(client => { client.Timeout=TimeSpan.FromSeconds(15);client.DefaultRequestHeaders.UserAgent.ParseAdd("MarketSignalAI/1.0"); });
 builder.Services.AddHttpClient<INewsIntelligenceCollector,DeepSeekNewsCollector>(client => client.Timeout=Timeout.InfiniteTimeSpan);
 builder.Services.AddHttpClient<IMarketDataProvider, YahooMarketDataProvider>(client =>
@@ -62,6 +66,8 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddSingleton<IAnalysisScheduleStore>(sp=>sp.GetRequiredService<MySqlAnalysisScheduleStore>());
     builder.Services.AddSingleton(new MySqlNewsContextStore(connectionString));
     builder.Services.AddSingleton<INewsContextStore>(sp=>sp.GetRequiredService<MySqlNewsContextStore>());
+    builder.Services.AddSingleton(new MySqlAnalysisExecutionSettingsStore(connectionString));
+    builder.Services.AddSingleton<IAnalysisExecutionSettingsStore>(sp => sp.GetRequiredService<MySqlAnalysisExecutionSettingsStore>());
     builder.Services.AddSingleton(new MySqlPromptStore(connectionString));
     builder.Services.AddSingleton<IPromptStore>(sp => sp.GetRequiredService<MySqlPromptStore>());
     builder.Services.AddSingleton(new MySqlAIProviderSettingsStore(connectionString,providerDefaults));
@@ -78,6 +84,7 @@ else if (storage.Equals("Memory", StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.AddSingleton<IAnalysisScheduleStore, MemoryAnalysisScheduleStore>();
     builder.Services.AddSingleton<IPromptStore, MemoryPromptStore>();
+    builder.Services.AddSingleton<IAnalysisExecutionSettingsStore, MemoryAnalysisExecutionSettingsStore>();
     builder.Services.AddSingleton<INewsContextStore, MemoryNewsContextStore>();
     builder.Services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore(providerDefaults));
     builder.Services.AddSingleton<MemorySignalStore>();
@@ -105,6 +112,8 @@ if (app.Services.GetService<MySqlPromptStore>() is { } promptSql)
     await promptSql.MigrateAsync(app.Lifetime.ApplicationStopping);
 if(app.Services.GetService<MySqlNewsContextStore>() is {} newsSql)
     await newsSql.MigrateAsync(app.Lifetime.ApplicationStopping);
+if (app.Services.GetService<MySqlAnalysisExecutionSettingsStore>() is { } executionSql)
+    await executionSql.MigrateAsync(app.Lifetime.ApplicationStopping);
 app.Use(async (context, next) =>
 {
     context.Response.Headers.CacheControl = "no-store";

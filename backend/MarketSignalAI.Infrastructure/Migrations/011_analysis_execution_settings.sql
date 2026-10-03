@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS AnalysisExecutionSettings (
+ UserId BIGINT NOT NULL PRIMARY KEY,
+ RefreshNewsBeforeAnalysis BOOLEAN NOT NULL DEFAULT FALSE,
+ FOREIGN KEY (UserId) REFERENCES Users(Id)
+);

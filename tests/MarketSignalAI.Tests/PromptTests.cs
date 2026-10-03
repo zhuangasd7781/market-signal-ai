@@ -86,7 +86,8 @@ public sealed class PromptTests
                 Assert.Equal(run == run1 ? seed.Version : "investment-analysis-v2", json.RootElement.GetProperty("promptVersion").GetString());
                 Assert.Equal(run == run1 ? seed.Content : "Second version core rules", json.RootElement.GetProperty("promptSnapshot").GetProperty("Content").GetString());
                 var skills = json.RootElement.GetProperty("skillIdentifiers").EnumerateArray().Select(x => x.GetString()).ToArray();
-                Assert.Equal(3, skills.Length);
+                Assert.Equal(4, skills.Length);
+                Assert.Contains(skills, x => x!.StartsWith("news-evidence:"));
                 Assert.Contains(skills, x => x!.StartsWith("tw-market-context:", StringComparison.Ordinal));
             }
         }

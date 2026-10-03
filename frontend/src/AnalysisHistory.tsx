@@ -1,3 +1,4 @@
+import { AnalysisNewsEvidence } from './AnalysisNewsEvidence';
 import { AnalysisStatusGrid } from './AnalysisStatusGrid';
 import { Fragment, useRef, useState } from 'react';
 import { SignalBadge } from './components';
@@ -20,7 +21,7 @@ function HistoryDetail({ analysis, quantityUnit, collapse }: { analysis: Analysi
       <h4>失效條件</h4><p>{analysisText(a.invalidation)}</p><h4>後續觸發條件</h4>{a.nextActions.map((next, index) => <div className="next-action" key={index}><p>{analysisText(next.condition)}</p><SignalBadge action={next.action} quantity={next.quantity} /></div>)}
     </div><div>
       <h4>當時輸入</h4>{c ? <><p>商品價格 {number(c.targetPrice)}</p><p>{c.position ? `持倉 ${number(c.position.quantity)} ${quantityUnit} · 平均成本 ${number(c.position.averageCost)}` : '未設定持倉'}</p><p>設定模型 {c.configuredModel ?? '未記錄'}</p><p>分析技能：{c.skillIdentifiers?.length ? c.skillIdentifiers.map(id => id.includes(':') ? `${id.split(':')[0]} · ${id.split(':')[1].slice(0, 12)}` : id).join('、') : '未記錄'}</p></> : <p className="muted">此歷史紀錄未提供輸入摘要。</p>}
-      <h4>市場參考資料</h4>{c?.marketReferences?.length ? c.marketReferences.map(ref => <article className="history-reference" key={ref.mappingId}>
+      <AnalysisNewsEvidence news={c?.newsContext} /><h4>市場參考資料</h4>{c?.marketReferences?.length ? c.marketReferences.map(ref => <article className="history-reference" key={ref.mappingId}>
         <strong>{referenceTypeText(ref.referenceType)} · {ref.name}（{ref.symbol}）</strong><p>狀態 {analysisValueText(ref.status)} · 數值 {number(ref.currentValue)}</p><p>漲跌 {number(ref.change)} · {number(ref.changePercent)}{ref.changePercent == null ? '' : '%'}</p>
         <p>歷史日價 {ref.history.length} 筆{ref.history.length > 0 && ` · ${ref.history[0].tradeDate} 至 ${ref.history[ref.history.length - 1].tradeDate}`}</p>
         {ref.historyMetadata && <p>歷史來源 {ref.historyMetadata.source} / {ref.historyMetadata.sourceSymbol} · 品質 {analysisValueText(ref.historyMetadata.dataQuality)}{ref.historyMetadata.isFallback && ' · 替代來源'}</p>}

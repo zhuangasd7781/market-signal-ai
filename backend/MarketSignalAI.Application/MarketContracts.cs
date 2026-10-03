@@ -35,6 +35,7 @@ public sealed record MarketContext(Product Product, MarketSnapshot Snapshot, IRe
     public AnalysisPromptSnapshot? Prompt { get; init; }
     public TwMarketContext? TwMarketContext { get; init; }
     public TargetReturns? TargetReturns { get; init; }
+    public NewsEvidenceContext? NewsContext { get; init; }
     public IReadOnlyList<MarketReferenceContext> MarketReferences { get; init; } = [];
     public IReadOnlyList<PreviousProviderDecision> PreviousDecisions { get; init; } = [];
 }
@@ -57,6 +58,7 @@ public interface IMarketAnalysisRunner
 {
     Task<ProductRunResult> RunProductAsync(string symbol, CancellationToken ct, DateOnly? expectedTradeDate = null);
     Task<ProductRunResult> RunProductAsync(string symbol, IReadOnlyList<string>? providers, CancellationToken ct) => RunProductAsync(symbol,ct);
+    Task<ProductRunResult> RunProductAsync(string symbol, IReadOnlyList<string>? providers, bool refreshNewsBeforeAnalysis, CancellationToken ct) => RunProductAsync(symbol, providers, ct);
     Task<BatchRunResult> RunAllAsync(CancellationToken ct, DateOnly? expectedTradeDate = null);
 }
 public interface IMarketScheduleExecutor

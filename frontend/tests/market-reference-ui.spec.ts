@@ -37,6 +37,7 @@ test('reference UI manages real API instruments and multiple mappings without an
   const instruments = await (await request.get(base + '/api/market-reference-instruments')).json();
   await page.goto('/products/00631L?market=TW');
   const panel = page.getByRole('region', { name: '市場參考標的' });
+  await panel.getByRole('button', { name: '展開市場參考標的' }).click();
   for (const [symbol, type] of [['^TSE50', 'UNDERLYING'], ['^TWII', 'BROAD_MARKET']]) {
     await panel.getByRole('button', { name: '新增此商品參考標的', exact: true }).click();
     await panel.getByLabel('共用市場標的', { exact: true }).selectOption(String(instruments.find((i: {symbol:string}) => i.symbol === symbol).id));
@@ -45,6 +46,7 @@ test('reference UI manages real API instruments and multiple mappings without an
     await expect(panel.getByRole('status')).toHaveText('商品參考設定已儲存');
   }
   await page.reload();
+  await panel.getByRole('button', { name: '展開市場參考標的' }).click();
   await expect(panel.getByText('追蹤標的', { exact: true })).toBeVisible();
   await expect(panel.getByText('大盤', { exact: true })).toBeVisible();
   await panel.getByRole('button', { name: '修改 ^TWII 參考設定', exact: true }).click();
@@ -61,6 +63,7 @@ test('reference UI manages real API instruments and multiple mappings without an
   await expect(manager.locator('.error')).toContainText('此標的仍有商品使用');
   await manager.getByRole('button', { name: '取消移除' }).click();
   await page.goto('/products/00631L?market=TW');
+  await panel.getByRole('button', { name: '展開市場參考標的' }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   for (const symbol of ['^TWII', '^TSE50']) {

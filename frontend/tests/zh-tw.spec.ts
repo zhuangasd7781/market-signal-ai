@@ -43,6 +43,7 @@ test('reference display translates types while mutations keep the original API v
   });
   await page.goto('/products/00631L');
   const references = page.getByRole('region', { name: '市場參考標的' });
+  await references.getByRole('button', { name: '展開市場參考標的' }).click();
   for (const label of ['追蹤標的', '大盤', '產業']) await expect(references.getByText(label, { exact: true })).toBeVisible();
   await references.getByRole('button', { name: '新增此商品參考標的' }).click();
   await references.getByLabel('參考類型', { exact: true }).selectOption({ label: '產業' });

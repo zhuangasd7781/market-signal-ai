@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from './api';
 import { ErrorState, LoadingState } from './components';
@@ -13,6 +13,8 @@ const meanings: Record<string, string> = { UNDERLYING: '主要追蹤標的', BRO
 export function MarketReferences({ product }: { product: Product }) {
   const path = `/products/${encodeURIComponent(product.symbol)}/references`;
   const query = `?market=${encodeURIComponent(product.market)}`;
+  const [expanded, setExpanded] = useState(false);
+  const contentId = useId();
   const [rows, setRows] = useState<Mapping[]>();
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [error, setError] = useState('');
@@ -34,9 +36,10 @@ export function MarketReferences({ product }: { product: Product }) {
   }
 
   return <section className="panel market-references" aria-label="市場參考標的">
-    <div className="section-heading"><h2>市場參考標的</h2><button disabled={busy || !rows} onClick={() => {
+    <div className="section-heading"><h2>市場參考標的</h2><div className="reference-heading-actions">{expanded && <button disabled={busy || !rows} onClick={() => {
       setMapping({ instrumentId: String(instruments[0]?.id ?? ''), referenceType: 'UNDERLYING' }); setRemoving(undefined);
-    }}>新增此商品參考標的</button></div>
+    }}>新增此商品參考標的</button>}<button type="button" disabled={busy} aria-expanded={expanded} aria-controls={contentId} aria-label={expanded ? '收合市場參考標的' : '展開市場參考標的'} onClick={() => setExpanded(value => !value)}>{expanded ? '收合' : '展開'} <span aria-hidden="true">{expanded ? '▴' : '▾'}</span></button></div></div>
+    <div id={contentId} hidden={!expanded}>
     <p className="small muted">參考標的僅作為分析證據；決策只針對 {product.symbol}。修改參考設定後，下一次 GPT／DeepSeek 分析會共同使用新設定，不會立即觸發 AI。</p>
     {error && <ErrorState message={error} retry={() => { setError(''); void load().catch(e => setError((e as Error).message)); }} />}
     <p role="status">{saved}</p>
@@ -60,5 +63,6 @@ export function MarketReferences({ product }: { product: Product }) {
     {removing && <div className="confirm-remove" role="alert"><span>確認移除 {removing.instrument.symbol} 的 參考設定？歷史分析輸入會保留。</span>
       <button disabled={busy} onClick={() => void mutate(() => api(path + `/${removing.id}` + query, { method: 'DELETE' }), '商品參考設定已移除')}>確認移除參考標的</button>
       <button disabled={busy} onClick={() => setRemoving(undefined)}>取消移除</button></div>}
+    </div>
   </section>;
 }

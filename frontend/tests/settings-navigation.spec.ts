@@ -38,6 +38,7 @@ test('account dropdown navigates existing settings routes and works by mouse and
   }
   await page.goto('/products/00631L?market=TW');
   await expect(page.getByRole('heading', { name: '市場參考標的' })).toBeVisible();
+  await page.getByRole('button', { name: '展開市場參考標的' }).click();
   await expect(page.getByRole('button', { name: '新增此商品參考標的' })).toBeVisible();
   await expect(page.getByRole('button', { name: '管理 共用市場標的' })).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });

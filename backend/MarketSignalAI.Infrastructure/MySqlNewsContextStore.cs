@@ -41,11 +41,12 @@ public sealed class MySqlNewsContextStore(string connectionString) : INewsContex
         await tx.CommitAsync(ct);return c with {Id=id};
     }
     public Task<NewsContext?> GetLatestAsync(CancellationToken ct)=>ReadAsync(null,ct);
+    public Task<NewsContext?> GetLatestValidAsync(CancellationToken ct)=>ReadAsync(null,ct,true);
     public Task<NewsContext?> GetAsync(long id,CancellationToken ct)=>ReadAsync(id,ct);
-    private async Task<NewsContext?> ReadAsync(long? id,CancellationToken ct)
+    private async Task<NewsContext?> ReadAsync(long? id,CancellationToken ct,bool validOnly=false)
     {
         await using var db=new MySqlConnection(connectionString);
-        var row=await db.QuerySingleOrDefaultAsync<Row>(new CommandDefinition(id.HasValue ? "SELECT Id,ContextJson FROM NewsContexts WHERE Id=@id" : "SELECT Id,ContextJson FROM NewsContexts ORDER BY Id DESC LIMIT 1",new {id},cancellationToken:ct));
+        var row=await db.QuerySingleOrDefaultAsync<Row>(new CommandDefinition(id.HasValue ? "SELECT Id,ContextJson FROM NewsContexts WHERE Id=@id" : validOnly ? "SELECT Id,ContextJson FROM NewsContexts WHERE Status IN ('AVAILABLE','PARTIAL') ORDER BY Id DESC LIMIT 1" : "SELECT Id,ContextJson FROM NewsContexts ORDER BY Id DESC LIMIT 1",new {id},cancellationToken:ct));
         return row is null ? null : (JsonSerializer.Deserialize<NewsContext>(row.ContextJson,Json) ?? throw new InvalidDataException("Invalid stored news context")) with {Id=row.Id};
     }
     private sealed record Row(long Id,string ContextJson);

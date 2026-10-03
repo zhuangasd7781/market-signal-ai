@@ -10,6 +10,7 @@ test('provider settings load and save without analysis; models come from backend
  await page.route('**/api/**',async route=>{
   const req=route.request();const path=new URL(req.url()).pathname;
   if(path.endsWith('/analysis/force')){force++;await route.abort();return;}
+  if(path==='/api/ai/analysis-settings'){await route.fulfill({json:{refreshNewsBeforeAnalysis:false}});return;}
   if(path==='/api/ai/settings'&&req.method()==='GET'){await route.fulfill({json:rows});return;}
   if(path.startsWith('/api/ai/settings/')&&req.method()==='PUT'){
    const row=rows.find(x=>x.provider===path.split('/').pop())!;Object.assign(row,req.postDataJSON());saves++;
