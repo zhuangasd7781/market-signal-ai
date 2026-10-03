@@ -15,6 +15,7 @@ import { PromptSettings } from './PromptSettings';
 import { AnalysisHistory } from './AnalysisHistory';
 import { MarketReferences } from './MarketReferences';
 import { ReferenceInstruments } from './ReferenceInstruments';
+import { NewsIntelligence } from './NewsIntelligence';
 import { AccountMenu } from './AccountMenu';
 import { analysisText, analysisValueText, assetTypeText, hasEffectiveRootEvent, marketText } from './displayText';
 
@@ -22,7 +23,7 @@ type ProviderSettingState = { provider: string; enabled: boolean; visible?: bool
 
 function AppShell() {
   if (sessionStorage.getItem('demo-session') !== 'yes') return <Navigate to="/login" replace />;
-  return <><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">m<span>∕</span></span>Market Signal <span className="brand-ai">AI</span></Link><nav aria-label="主要導覽"><Link className="nav-link" to="/">我的追蹤</Link></nav><div className="account"><ThemeToggle /><AccountMenu /></div></header><main><Outlet /></main><footer><span>MARKET SIGNAL AI</span><span>獨立觀點，自主判斷。</span></footer></>;
+  return <><header className="topbar"><Link className="brand" to="/"><span className="brand-mark">m<span>∕</span></span>Market Signal <span className="brand-ai">AI</span></Link><nav aria-label="主要導覽"><Link className="nav-link" to="/">我的追蹤</Link><Link className="nav-link" to="/news">市場情報</Link></nav><div className="account"><ThemeToggle /><AccountMenu /></div></header><main><Outlet /></main><footer><span>MARKET SIGNAL AI</span><span>獨立觀點，自主判斷。</span></footer></>;
 }
 function Login() {
   const navigate = useNavigate();
@@ -140,4 +141,4 @@ function ProductDetail() {
       <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); const enabled = providerSettings[p.code.toLowerCase()] ?? true; return a ? <AnalysisCard key={p.code} analysis={a} enabled={enabled} /> : <article className="analysis-card" key={p.code}><h3 className={`provider-heading${enabled ? '' : ' provider-heading--disabled'}`}><ProviderLogo code={p.code} />{p.displayName}{!enabled && <span className="provider-state">未啟用</span>}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Home />} /><Route path="/settings/ai" element={<AISettings />} /><Route path="/settings/schedule" element={<AnalysisScheduleSettings />} /><Route path="/settings/prompts" element={<PromptSettings />} /><Route path="/settings/reference-instruments" element={<ReferenceInstruments />} /><Route path="/products/:symbol" element={<ProductDetail />} /><Route path="*" element={<div className="empty"><h1>找不到此頁面</h1><Link to="/">返回我的追蹤</Link></div>} /></Route></Routes></BrowserRouter></StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Home />} /><Route path="/news" element={<NewsIntelligence />} /><Route path="/news/:contextId" element={<NewsIntelligence />} /><Route path="/settings/ai" element={<AISettings />} /><Route path="/settings/schedule" element={<AnalysisScheduleSettings />} /><Route path="/settings/prompts" element={<PromptSettings />} /><Route path="/settings/reference-instruments" element={<ReferenceInstruments />} /><Route path="/products/:symbol" element={<ProductDetail />} /><Route path="*" element={<div className="empty"><h1>找不到此頁面</h1><Link to="/">返回我的追蹤</Link></div>} /></Route></Routes></BrowserRouter></StrictMode>);

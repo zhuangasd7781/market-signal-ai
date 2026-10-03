@@ -17,6 +17,13 @@ builder.Services.AddScoped<SignalService>();
 builder.Services.AddScoped<AIProviderSettingsService>();
 builder.Services.AddScoped<PromptService>();
 builder.Services.AddSingleton(TimeProvider.System);
+var news = builder.Configuration.GetSection("News").Get<NewsOptions>() ?? new();
+if(news.MaxInputArticles is <3 or >150) throw new InvalidOperationException("News:MaxInputArticles must be between 3 and 150.");
+builder.Services.AddSingleton(news);
+builder.Services.AddSingleton<NewsRefreshGate>();
+builder.Services.AddScoped<INewsContextRefresher, NewsContextRefresher>();
+builder.Services.AddHttpClient<INewsSearchProvider,RssNewsSearchProvider>(client => { client.Timeout=TimeSpan.FromSeconds(15);client.DefaultRequestHeaders.UserAgent.ParseAdd("MarketSignalAI/1.0"); });
+builder.Services.AddHttpClient<INewsIntelligenceCollector,DeepSeekNewsCollector>(client => client.Timeout=Timeout.InfiniteTimeSpan);
 builder.Services.AddHttpClient<IMarketDataProvider, YahooMarketDataProvider>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(12);
@@ -53,6 +60,8 @@ if (storage.Equals("MySql", StringComparison.OrdinalIgnoreCase))
         ?? throw new InvalidOperationException("ConnectionStrings:MySql is required.");
     builder.Services.AddSingleton(new MySqlAnalysisScheduleStore(connectionString));
     builder.Services.AddSingleton<IAnalysisScheduleStore>(sp=>sp.GetRequiredService<MySqlAnalysisScheduleStore>());
+    builder.Services.AddSingleton(new MySqlNewsContextStore(connectionString));
+    builder.Services.AddSingleton<INewsContextStore>(sp=>sp.GetRequiredService<MySqlNewsContextStore>());
     builder.Services.AddSingleton(new MySqlPromptStore(connectionString));
     builder.Services.AddSingleton<IPromptStore>(sp => sp.GetRequiredService<MySqlPromptStore>());
     builder.Services.AddSingleton(new MySqlAIProviderSettingsStore(connectionString,providerDefaults));
@@ -69,6 +78,7 @@ else if (storage.Equals("Memory", StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.AddSingleton<IAnalysisScheduleStore, MemoryAnalysisScheduleStore>();
     builder.Services.AddSingleton<IPromptStore, MemoryPromptStore>();
+    builder.Services.AddSingleton<INewsContextStore, MemoryNewsContextStore>();
     builder.Services.AddSingleton<IAIProviderSettingsStore>(new MemoryAIProviderSettingsStore(providerDefaults));
     builder.Services.AddSingleton<MemorySignalStore>();
     builder.Services.AddSingleton<ISignalStore>(sp => sp.GetRequiredService<MemorySignalStore>());
@@ -93,6 +103,8 @@ if(app.Services.GetService<MySqlAnalysisScheduleStore>() is {} scheduleSql)
     await scheduleSql.MigrateAndSeedAsync(app.Lifetime.ApplicationStopping);
 if (app.Services.GetService<MySqlPromptStore>() is { } promptSql)
     await promptSql.MigrateAsync(app.Lifetime.ApplicationStopping);
+if(app.Services.GetService<MySqlNewsContextStore>() is {} newsSql)
+    await newsSql.MigrateAsync(app.Lifetime.ApplicationStopping);
 app.Use(async (context, next) =>
 {
     context.Response.Headers.CacheControl = "no-store";
@@ -110,7 +122,7 @@ app.Use(async (context, next) =>
         var status = ex switch { KeyNotFoundException => 404, ArgumentException => 400, InvalidOperationException => 409, _ => 503 };
         if (status == 503) app.Logger.LogError(ex, "Request failed {TraceId}", context.TraceIdentifier);
         context.Response.StatusCode = status;
-        await context.Response.WriteAsJsonAsync(new { message = status == 503 ? "服務暫時無法使用，請稍後再試。" : ex.Message });
+        await context.Response.WriteAsJsonAsync(new { message = ex is NewsPipelineException ? ex.Message : status == 503 ? "服務暫時無法使用，請稍後再試。" : ex.Message });
     }
 });
 app.UseFastEndpoints();
