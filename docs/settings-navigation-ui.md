@@ -1,0 +1,9 @@
+# Settings navigation (Task 8)
+
+The header now keeps `我的追蹤` as its main navigation and puts account and settings actions in the `Demo 投資人` dropdown. It contains the existing AI, analysis schedule and Prompt settings pages, plus a new route for the shared Reference Instrument catalog. The old duplicate Header/Footer settings links are removed. The dropdown closes on selection, outside pointer click, Escape or route change; Escape returns focus to its trigger. It stays usable at a 390px viewport.
+
+`/settings/ai`, `/settings/schedule` and `/settings/prompts` still render their existing components. `/settings/reference-instruments` is a small frontend-only page over the existing Instrument CRUD API. The product's `市場參考標的` panel retains only Product-to-Instrument Mapping CRUD, so a shared Instrument cannot be mistaken for a product Mapping. Direct URL and refresh work on all four routes. No Backend route or schema changed, and settings/catalog navigation does not call AI.
+
+The product analysis cards read `/api/ai/settings`. A disabled Provider heading and logo use a readable muted color and show `未啟用`; enabled headings retain their normal style. No Provider code, including Claude, is treated as permanently disabled in React.
+
+Verification: Frontend production build passed. Backend build passed with zero warnings/errors; backend tests passed 134/135, with the opt-in MySQL integration test skipped because this task used a Memory API. Edge Playwright ran 12 tests: 10 passed and two opt-in live settings tests were skipped. Browser tests covered Home, Product Detail, AI Settings, Schedule, Prompt Settings, Reference Instruments, direct route reload, dropdown keyboard/outside behavior, Backend-driven Provider state, Reference CRUD and 390px width. Page errors and unintended Force Analysis calls were zero. Existing MySQL integration was previously verified on the unchanged Task 7 backend commit.

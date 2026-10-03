@@ -11,6 +11,7 @@ test('history table compares models and expands saved evidence without triggerin
   if(path.endsWith('/analysis/force')){force++;await route.abort();return;}
   if(path==='/api/products/00631L'){await route.fulfill({json:product});return;}
   if(path==='/api/ai/providers'){await route.fulfill({json:providers});return;}
+  if(path==='/api/ai/settings'){await route.fulfill({json:providers.map(p=>({provider:p.code,enabled:true}))});return;}
   if(path==='/api/watchlist'){await route.fulfill({json:{providers,items:[{product,signals:[],lastAnalyzedAt:null}],isMock:true}});return;}
   if(path.endsWith('/position')){await route.fulfill({json:{position:null,quote:null}});return;}
   if(path.endsWith('/market')){await route.fulfill({status:404,json:{message:'No market'}});return;}

@@ -5,8 +5,8 @@ test('schedule can add edit remove disable and reload without analysis',async({p
  await page.addInitScript(()=>sessionStorage.setItem('demo-session','yes'));await page.goto('/settings/schedule');
  await expect(page.getByRole('heading',{name:'\u5206\u6790\u6392\u7a0b',exact:true})).toBeVisible();
  const inputs=page.locator('input[type=time]');await expect(inputs).toHaveCount(1);
- await page.locator('button[type=button]').filter({hasText:/./}).first().click();await expect(inputs).toHaveCount(0);
- await page.locator('button[type=button]').last().click();await expect(inputs).toHaveCount(1);await inputs.first().fill('11:15');
+ await page.getByRole('button',{name:'刪除時間 1'}).click();await expect(inputs).toHaveCount(0);
+ await page.getByRole('button',{name:'新增時間'}).click();await expect(inputs).toHaveCount(1);await inputs.first().fill('11:15');
  await page.locator('input[type=checkbox]').uncheck();await page.locator('button.primary').click();await expect(page.getByRole('status')).toHaveText('\u5206\u6790\u6392\u7a0b\u5df2\u5132\u5b58');
  await page.reload();await expect(inputs.first()).toHaveValue('11:15');await expect(page.locator('input[type=checkbox]')).not.toBeChecked();expect(calls).toBe(0);
  await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
