@@ -142,6 +142,42 @@ public sealed class AIProviderSettingsTests
         Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsync("/api/products/00631L/analysis/force",body)).StatusCode);
         Assert.Equal(0,market.Calls);
     }
+    [Fact]
+    public async Task VisibilityIsScopedAndIndependentAndLegacyUpdatesPreserveIt()
+    {
+        var forbidden = new ThrowingAnalyst();
+        await using var factory = new ApiFactory(s => { s.RemoveAll<IAIAnalyst>(); s.AddSingleton<IAIAnalyst>(forbidden); });
+        using var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Market-Signal", "web");
+        var initial = await client.GetFromJsonAsync<AIProviderSettingView[]>("/api/ai/settings");
+        Assert.All(initial!, row => Assert.True(row.Visible));
+        var before = await client.GetStringAsync("/api/products/00631L/analysis/history");
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync("/api/ai/settings/claude", new { enabled = false, visible = false, configuredModel = "mock-v1" })).StatusCode);
+        var store = factory.Services.GetRequiredService<IAIProviderSettingsStore>();
+        var hidden = Assert.Single(await store.GetAsync(1, default), x => x.Provider == "claude");
+        Assert.False(hidden.Visible); Assert.False(hidden.Enabled);
+        Assert.True(Assert.Single(await store.GetAsync(2, default), x => x.Provider == "claude").Visible);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync("/api/ai/settings/claude", new { enabled = true, configuredModel = "mock-v1" })).StatusCode);
+        var updated = Assert.Single((await client.GetFromJsonAsync<AIProviderSettingView[]>("/api/ai/settings"))!, x => x.Provider == "claude");
+        Assert.False(updated.Visible); Assert.True(updated.Enabled);
+        Assert.Equal(before, await client.GetStringAsync("/api/products/00631L/analysis/history"));
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync("/api/ai/settings/claude", new { enabled = false, visible = true, configuredModel = "mock-v1" })).StatusCode);
+        Assert.True(Assert.Single(await store.GetAsync(1, default), x => x.Provider == "claude").Visible);
+        Assert.Equal(0, forbidden.Calls);
+    }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HiddenEnabledProviderStillRunsAndVisibleDisabledProviderDoesNot(bool batch)
+    {
+        var signals = new MemorySignalStore(); var marketStore = new MemoryMarketStore(signals);
+        var settings = new MemoryAIProviderSettingsStore(Defaults(false));
+        await settings.SaveAsync(1, new("deepseek", true, "configured-deep", Visible: false), default);
+        var gpt = new CountingAnalyst("openai"); var deep = new CountingAnalyst("deepseek");
+        var runner = new MarketAnalysisRunner(new Market(), marketStore, signals, new IAIAnalyst[] { gpt, deep }, NullLogger<MarketAnalysisRunner>.Instance, settings: settings);
+        if (batch) await runner.RunAllAsync(default); else await runner.RunProductAsync("00631L", default);
+        Assert.Equal(0, gpt.Calls); Assert.Equal(batch ? 3 : 1, deep.Calls);
+    }
     private sealed class ThrowingAnalyst : IAIAnalyst
     {public int Calls;public string ProviderCode=>"openai";public Task<AnalystResult> AnalyzeAsync(MarketContext input,CancellationToken ct){Calls++;throw new InvalidOperationException("Settings must never execute AI.");}}
     private sealed class CountingAnalyst(string code) : IAIAnalyst

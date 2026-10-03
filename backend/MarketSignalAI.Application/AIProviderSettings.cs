@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 namespace MarketSignalAI.Application;
 
-public sealed record AIProviderSetting(string Provider, bool Enabled, string ConfiguredModel);
-public sealed record AIProviderSettingView(string Provider, string DisplayName, bool Enabled, string ConfiguredModel, string? ActualModel, bool IsMock);
+public sealed record AIProviderSetting(string Provider, bool Enabled, string ConfiguredModel, bool Visible = true);
+public sealed record AIProviderSettingView(string Provider, string DisplayName, bool Enabled, string ConfiguredModel, string? ActualModel, bool IsMock, bool Visible = true);
 public interface IAIProviderSettingsStore
 {
     Task<IReadOnlyList<AIProviderSetting>> GetAsync(long userId, CancellationToken ct);
@@ -30,8 +30,19 @@ public sealed class AIProviderSettingsService(IAIProviderSettingsStore settings,
         {
             var row=rows.Single(x=>x.Provider==p.Code);
             var actual=history.Where(x=>x.AIProviderId==p.Id).OrderByDescending(x=>x.CreatedAt).ThenByDescending(x=>x.Id).FirstOrDefault()?.Model;
-            return new AIProviderSettingView(p.Code,p.DisplayName,row.Enabled,row.ConfiguredModel,actual,p.Code=="claude");
+            return new AIProviderSettingView(p.Code,p.DisplayName,row.Enabled,row.ConfiguredModel,actual,p.Code=="claude",row.Visible);
         }).ToArray();
+    }
+    public async Task UpdateAsync(string provider, bool enabled, string model, bool? visible, CancellationToken ct)
+    {
+        var row = new AIProviderSetting(provider, enabled, model, visible ?? true);
+        AIProviderSettingsValidation.Validate(row);
+        if (visible is null)
+        {
+            var current = await settings.GetAsync(user.UserId, ct);
+            row = row with { Visible = current.Single(x => x.Provider == provider).Visible };
+        }
+        await settings.SaveAsync(user.UserId, row, ct);
     }
     public Task SaveAsync(AIProviderSetting row,CancellationToken ct) { AIProviderSettingsValidation.Validate(row);return settings.SaveAsync(user.UserId,row,ct); }
 }

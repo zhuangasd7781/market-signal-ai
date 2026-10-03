@@ -1,3 +1,4 @@
+import { AnalysisStatusGrid } from './AnalysisStatusGrid';
 import { StrictMode, useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -15,8 +16,9 @@ import { AnalysisHistory } from './AnalysisHistory';
 import { MarketReferences } from './MarketReferences';
 import { ReferenceInstruments } from './ReferenceInstruments';
 import { AccountMenu } from './AccountMenu';
+import { analysisText, analysisValueText, assetTypeText, hasEffectiveRootEvent, marketText } from './displayText';
 
-type ProviderSettingState = { provider: string; enabled: boolean };
+type ProviderSettingState = { provider: string; enabled: boolean; visible?: boolean };
 
 function AppShell() {
   if (sessionStorage.getItem('demo-session') !== 'yes') return <Navigate to="/login" replace />;
@@ -32,17 +34,17 @@ function Login() {
     catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
-  return <div className="login"><div className="login-theme"><ThemeToggle /></div><span className="eyebrow">MARKET SIGNAL AI</span><h1>多個觀點。<br /><span className="muted">一眼掌握。</span></h1><p>追蹤你關注的投資商品，<br />並排檢視各 AI 分析師的獨立訊號。</p><button className="primary" disabled={busy} onClick={() => void enter()}>{busy ? '連線中…' : '進入示範看板 →'}</button>{error && <ErrorState message={error} />}<p className="login-note">Phase 1 · 示範模式<br />Google 登入將於下一階段提供。<br />此模式共用示範帳戶，請勿輸入私人資料。</p></div>;
+  return <div className="login"><div className="login-theme"><ThemeToggle /></div><span className="eyebrow">MARKET SIGNAL AI</span><h1>多個觀點。<br /><span className="muted">一眼掌握。</span></h1><p>追蹤你關注的投資商品，<br />並排檢視各 AI 分析師的獨立訊號。</p><button className="primary" disabled={busy} onClick={() => void enter()}>{busy ? '連線中…' : '進入示範看板 →'}</button>{error && <ErrorState message={error} />}<p className="login-note">第一階段 · 示範模式<br />Google 登入將於下一階段提供。<br />此模式共用示範帳戶，請勿輸入私人資料。</p></div>;
 }
 function Home() {
   const [data, setData] = useState<Watchlist>();
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [adding, setAdding] = useState(false);
-  const load = useCallback(async () => { setError(''); try { setData(await api<Watchlist>('/watchlist')); } catch (e) { setError((e as Error).message); } }, []);
+  const load = useCallback(async () => { setError(''); try { const [watchlist, settings] = await Promise.all([api<Watchlist>('/watchlist'), api<ProviderSettingState[]>('/ai/settings')]); const hidden = new Set(settings.filter(row => row.visible === false).map(row => row.provider)); setData({ ...watchlist, providers: watchlist.providers.filter(provider => !hidden.has(provider.code)) }); } catch (e) { setError((e as Error).message); } }, []);
   useEffect(() => { void load(); }, [load]);
   const filtered = data?.items.filter(({ product: p }) => `${p.symbol} ${p.name}`.toLowerCase().includes(query.trim().toLowerCase())) ?? [];
-  return <><div className="page-heading"><div><span className="eyebrow">YOUR SIGNAL BOARD</span><h1>我的追蹤 <span className="count">{data?.items.length ?? '—'}</span></h1><p className="muted">每個 AI 獨立分析，讓不同觀點並排呈現。</p></div><button className="primary" onClick={() => setAdding(true)}>＋ 加入商品</button></div>
+  return <><div className="page-heading"><div><span className="eyebrow">我的分析看板</span><h1>我的追蹤 <span className="count">{data?.items.length ?? '—'}</span></h1><p className="muted">每個 AI 獨立分析，讓不同觀點並排呈現。</p></div><button className="primary" onClick={() => setAdding(true)}>＋ 加入商品</button></div>
     <section className="board" aria-label="AI 訊號看板"><div className="board-toolbar"><label className="search-box"><span aria-hidden="true">⌕</span><input aria-label="搜尋追蹤商品" placeholder="搜尋追蹤商品…" value={query} onChange={e => setQuery(e.target.value)} /></label><span className="toolbar-note"><span className="status-dot" />獨立 AI 訊號</span></div>
       {error ? <ErrorState message={error} retry={() => void load()} /> : !data ? <LoadingState /> : data.items.length === 0 ? <div className="empty"><span className="empty-icon">＋</span><h2>目前沒有追蹤商品</h2><p>加入你想讓 AI 分析的股票、ETF 或其他投資商品。</p><button className="primary" onClick={() => setAdding(true)}>＋ 加入第一個商品</button></div> : filtered.length === 0 ? <div className="empty"><h2>沒有符合的追蹤商品</h2><button onClick={() => setQuery('')}>清除搜尋</button></div> : <WatchlistTable data={{ ...data, items: filtered }} />}
       <div className="board-footer"><span>各 AI 訊號皆為獨立觀點，不代表共識。</span><span>時間顯示各商品最近一次分析</span></div></section>
@@ -86,8 +88,8 @@ function PositionSection({ product }: { product: Product }) {
 }
 function AnalysisCard({ analysis, enabled }: { analysis: AnalysisView; enabled: boolean }) {
   const a = analysis.result;
-  return <article className="analysis-card"><div className="section-heading"><div><h3 className={`provider-heading${enabled ? '' : ' provider-heading--disabled'}`}><ProviderLogo code={analysis.provider} />{analysis.displayName}{!enabled && <span className="provider-state">未啟用</span>}</h3><span className="small muted">{analysis.model} · <RelativeTime value={analysis.createdAt} /></span></div><SignalBadge action={a.action} quantity={a.quantity} /></div><div className="confidence">{analysis.model.startsWith('mock') ? '示範信心值' : '分析信心值'} <strong>{a.confidence}%</strong></div><h4>Root Event <span className="tag">{a.rootEvent.status}</span></h4><p>{a.rootEvent.summary}</p><dl className="context-grid">{[['市場狀態', a.marketRegime], ['趨勢', a.trend], ['動能', a.momentum], ['量價', a.volume], ['風險報酬', a.riskReward]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value === 'UNKNOWN' ? '資料不足' : value}</dd></div>)}</dl>
-      {([['主要原因', a.reasons], ['風險', a.risks], ['Bull Case · 多方觀點', a.bullCase], ['Bear Case · 空方觀點', a.bearCase]] as const).map(([title, items]) => <div key={title}><h4>{title}</h4><ul>{items.map(item => <li key={item}>{item}</li>)}</ul></div>)}<div className="invalidation"><h4>什麼情況會使分析失效？</h4><p>{a.invalidation}</p></div><h4>下一步</h4>{a.nextActions.map((next, i) => <div className="next-action" key={i}><p>{next.condition}</p><SignalBadge action={next.action} quantity={next.quantity} /></div>)}</article>;
+  return <article className="analysis-card"><div className="section-heading"><div><h3 className={`provider-heading${enabled ? '' : ' provider-heading--disabled'}`}><ProviderLogo code={analysis.provider} />{analysis.displayName}{!enabled && <span className="provider-state">未啟用</span>}</h3><span className="analysis-model small muted">{analysis.model} · <RelativeTime value={analysis.createdAt} /></span></div><SignalBadge action={a.action} quantity={a.quantity} /></div><div className="confidence">{analysis.model.startsWith('mock') ? '示範分析信心值' : '分析信心值'} <strong>{a.confidence}%</strong></div>{hasEffectiveRootEvent(a.rootEvent) && <><h4>關鍵事件 <span className="tag">{analysisValueText(a.rootEvent.status)}</span></h4><p>{analysisText(a.rootEvent.summary)}</p></>}<AnalysisStatusGrid analysis={a} />
+      {([['主要原因', a.reasons], ['風險', a.risks], ['多方觀點', a.bullCase], ['空方觀點', a.bearCase]] as const).map(([title, items]) => <div key={title}><h4>{title}</h4><ul>{items.map(item => <li key={item}>{analysisText(item)}</li>)}</ul></div>)}<div className="invalidation"><h4>失效條件</h4><p>{analysisText(a.invalidation)}</p></div><h4>後續觸發條件</h4>{a.nextActions.map((next, i) => <div className="next-action" key={i}><p>{analysisText(next.condition)}</p><SignalBadge action={next.action} quantity={next.quantity} /></div>)}</article>;
 }
 function ProductDetail() {
   const { symbol = '' } = useParams();
@@ -111,7 +113,7 @@ function ProductDetail() {
     setError(''); setAnalysisError('');
     try {
       const [p, ps, watchlist, settings] = await Promise.all([api<Product>(base + query), api<Provider[]>('/ai/providers'), api<Watchlist>('/watchlist'), api<ProviderSettingState[]>('/ai/settings')]);
-      setProduct(p); setProviders(ps); setProviderSettings(Object.fromEntries(settings.map(row => [row.provider.toLowerCase(), row.enabled]))); setTracked(watchlist.items.some(x => x.product.id === p.id));
+      setProduct(p); setProviders(ps.filter(provider => settings.find(row => row.provider === provider.code)?.visible !== false)); setProviderSettings(Object.fromEntries(settings.map(row => [row.provider.toLowerCase(), row.enabled]))); setTracked(watchlist.items.some(x => x.product.id === p.id));
       try { setAnalyses(await api<AnalysisView[]>(base + '/analysis' + query)); } catch (e) { setAnalysisError((e as Error).message); }
     } catch (e) { setError((e as Error).message); }
   }, [base, query]);
@@ -132,7 +134,7 @@ function ProductDetail() {
     catch (e) { setAnalysisError((e as Error).message); }
     finally { setBusy(false); }
   }
-  return <><Link className="back" to="/">← 返回我的追蹤</Link>{error && <ErrorState message={error} retry={() => void load()} />}{!product ? !error && <LoadingState /> : <><div className="page-heading detail-heading"><div><span className="eyebrow">{product.market} / {product.assetType}{product.isLeveraged && ' / LEVERAGED'}</span><h1>{product.symbol}</h1><p>{product.name}</p></div><div>{confirmRemove ? <div className="confirm-remove"><span>移除追蹤？持倉與歷史會保留。</span><button disabled={busy} onClick={() => void changeWatch()}>確認移除</button><button onClick={() => setConfirmRemove(false)}>取消</button></div> : <button disabled={busy} onClick={() => tracked ? setConfirmRemove(true) : void changeWatch()}>{tracked ? '移除追蹤' : '＋ 加入追蹤'}</button>}</div></div>
+  return <><Link className="back" to="/">← 返回我的追蹤</Link>{error && <ErrorState message={error} retry={() => void load()} />}{!product ? !error && <LoadingState /> : <><div className="page-heading detail-heading"><div><span className="eyebrow">{marketText(product.market)} / {assetTypeText(product.assetType)}{product.isLeveraged && ' / 槓桿'}</span><h1>{product.symbol}</h1><p>{product.name}</p></div><div>{confirmRemove ? <div className="confirm-remove"><span>移除追蹤？持倉與歷史會保留。</span><button disabled={busy} onClick={() => void changeWatch()}>確認移除</button><button onClick={() => setConfirmRemove(false)}>取消</button></div> : <button disabled={busy} onClick={() => tracked ? setConfirmRemove(true) : void changeWatch()}>{tracked ? '移除追蹤' : '＋ 加入追蹤'}</button>}</div></div>
       <PositionSection key={product.id} product={product} /><MarketReferences key={`references-${product.id}`} product={product} /><div className="section-heading analysis-heading"><div><h2>AI 獨立觀點</h2><p className="muted small">各自分析，保留分歧。請留意模型與分析時間。</p></div><button disabled={busy} onClick={() => void toggleHistory()}>{showHistory ? '收起歷史' : '分析歷史'}</button></div>
       {analysisError && <ErrorState message={analysisError} retry={() => void load()} />}{showHistory && <AnalysisHistory analyses={history ?? []} quantityUnit={product.quantityUnit} /> }
       <div className="analysis-grid">{providers.map(p => { const a = analyses.find(x => x.provider === p.code); const enabled = providerSettings[p.code.toLowerCase()] ?? true; return a ? <AnalysisCard key={p.code} analysis={a} enabled={enabled} /> : <article className="analysis-card" key={p.code}><h3 className={`provider-heading${enabled ? '' : ' provider-heading--disabled'}`}><ProviderLogo code={p.code} />{p.displayName}{!enabled && <span className="provider-state">未啟用</span>}</h3><p className="muted">{analysisError ? '暫時無法載入分析。' : '尚未分析。'}</p></article>; })}</div></>}</>;

@@ -31,7 +31,7 @@ test('login, dynamic board, search, detail, position, history, remove', async ({
   await page.getByRole('button', { name: '確認移除' }).click();
   await expect(page.getByRole('link', { name: '0050 元大台灣50' })).toHaveCount(0);
   await page.getByRole('link', { name: '2330 台積電' }).click();
-  await expect(page.getByText('什麼情況會使分析失效？')).toHaveCount(providers.length);
+  await expect(page.getByText('失效條件')).toHaveCount(providers.length);
   await page.getByRole('button', { name: '分析歷史', exact: true }).click();
   await expect(page.locator('.history-table tbody > tr')).toHaveCount(6);
   await page.screenshot({ path: 'test-results/detail.png', fullPage: true });

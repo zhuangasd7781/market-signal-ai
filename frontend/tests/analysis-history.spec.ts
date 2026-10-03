@@ -31,8 +31,8 @@ test('history table compares models and expands saved evidence without triggerin
  await expect.poll(() => page.locator('.history-scroll').evaluate(e => e.scrollLeft)).toBe(0);
  await expect(page.getByText('history-only-reason')).toBeVisible();
  await expect(page.getByText('history-only-invalidation')).toBeVisible();
- await expect(page.getByText(/UNDERLYING.*Taiwan50/)).toBeVisible();
- await expect(page.getByText(/TWSE.*TAI50I.*CLOSE_ONLY/)).toBeVisible();
+ await expect(page.getByText(/追蹤標的.*Taiwan50/)).toBeVisible();
+ await expect(page.getByText(/TWSE.*TAI50I.*僅收盤價/)).toBeVisible();
  await expect(page.getByText('1,234',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'收起分析 101'})).toHaveAttribute('aria-expanded','true');
  await page.getByRole('button',{name:'展開分析 100',exact:true}).click();

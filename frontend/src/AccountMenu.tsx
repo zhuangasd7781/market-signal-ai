@@ -5,7 +5,7 @@ const settings = [
   { path: '/settings/ai', label: 'AI 設定' },
   { path: '/settings/schedule', label: '分析排程' },
   { path: '/settings/prompts', label: 'Prompt 設定' },
-  { path: '/settings/reference-instruments', label: 'Reference Instruments' },
+  { path: '/settings/reference-instruments', label: '共用市場標的' },
 ];
 
 export function AccountMenu() {
@@ -40,9 +40,9 @@ export function AccountMenu() {
 
   return <div className="account-menu" ref={root}>
     <button className="account-trigger" ref={trigger} type="button" aria-expanded={open}
-      aria-controls="account-settings-menu" aria-label="Demo 投資人，開啟帳戶選單"
+      aria-controls="account-settings-menu" aria-label="示範投資人，開啟帳戶選單"
       onClick={() => setOpen(value => !value)}>
-      <span className="avatar" aria-hidden="true">D</span><span className="account-name">Demo 投資人</span><span className="menu-chevron" aria-hidden="true">▾</span>
+      <span className="avatar" aria-hidden="true">D</span><span className="account-name">示範投資人</span><span className="menu-chevron" aria-hidden="true">▾</span>
     </button>
     {open && <div id="account-settings-menu" className="account-menu-popover" role="navigation" aria-label="帳戶與設定">
       <p className="account-menu-title">設定</p>

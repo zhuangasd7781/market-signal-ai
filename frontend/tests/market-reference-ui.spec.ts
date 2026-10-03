@@ -24,56 +24,56 @@ test('reference UI manages real API instruments and multiple mappings without an
     await route.fulfill({ response });
   });
   await page.goto('/products/00631L?market=TW');
-  await page.getByRole('button', { name: 'Demo 投資人，開啟帳戶選單' }).click();
-  await page.getByRole('navigation', { name: '帳戶與設定' }).getByRole('link', { name: 'Reference Instruments' }).click();
-  const manager = page.getByRole('region', { name: 'Reference Instruments 管理' });
+  await page.getByRole('button', { name: '示範投資人，開啟帳戶選單' }).click();
+  await page.getByRole('navigation', { name: '帳戶與設定' }).getByRole('link', { name: '共用市場標的' }).click();
+  const manager = page.getByRole('region', { name: '共用市場標的管理' });
   for (const [symbol, name] of [['^TSE50', 'Taiwan50'], ['^TWII', 'TAIEX']]) {
-    await manager.getByRole('button', { name: '新增 Instrument', exact: true }).click();
-    await manager.getByRole('textbox', { name: 'Yahoo ticker' }).fill(symbol);
-    await manager.getByRole('textbox', { name: 'Reference 名稱' }).fill(name);
-    await manager.getByRole('button', { name: '儲存 Instrument', exact: true }).click();
-    await expect(manager.getByRole('status')).toHaveText('Reference Instrument 已儲存');
+    await manager.getByRole('button', { name: '新增標的', exact: true }).click();
+    await manager.getByRole('textbox', { name: 'Yahoo Symbol' }).fill(symbol);
+    await manager.getByRole('textbox', { name: '標的名稱' }).fill(name);
+    await manager.getByRole('button', { name: '儲存標的', exact: true }).click();
+    await expect(manager.getByRole('status')).toHaveText('共用市場標的已儲存');
   }
   const instruments = await (await request.get(base + '/api/market-reference-instruments')).json();
   await page.goto('/products/00631L?market=TW');
   const panel = page.getByRole('region', { name: '市場參考標的' });
   for (const [symbol, type] of [['^TSE50', 'UNDERLYING'], ['^TWII', 'BROAD_MARKET']]) {
     await panel.getByRole('button', { name: '新增此商品參考標的', exact: true }).click();
-    await panel.getByLabel('Reference Instrument', { exact: true }).selectOption(String(instruments.find((i: {symbol:string}) => i.symbol === symbol).id));
-    await panel.getByLabel('Reference Type', { exact: true }).selectOption(type);
-    await panel.getByRole('button', { name: '儲存 Mapping', exact: true }).click();
-    await expect(panel.getByRole('status')).toHaveText('Reference Mapping 已儲存');
+    await panel.getByLabel('共用市場標的', { exact: true }).selectOption(String(instruments.find((i: {symbol:string}) => i.symbol === symbol).id));
+    await panel.getByLabel('參考類型', { exact: true }).selectOption(type);
+    await panel.getByRole('button', { name: '儲存參考設定', exact: true }).click();
+    await expect(panel.getByRole('status')).toHaveText('商品參考設定已儲存');
   }
   await page.reload();
-  await expect(panel.getByText('UNDERLYING', { exact: true })).toBeVisible();
-  await expect(panel.getByText('BROAD_MARKET', { exact: true })).toBeVisible();
-  await panel.getByRole('button', { name: '修改 ^TWII Mapping', exact: true }).click();
-  await panel.getByLabel('Reference Type', { exact: true }).selectOption('SECTOR');
-  await panel.getByRole('button', { name: '儲存 Mapping', exact: true }).click();
-  await expect(panel.getByText('SECTOR', { exact: true })).toBeVisible();
+  await expect(panel.getByText('追蹤標的', { exact: true })).toBeVisible();
+  await expect(panel.getByText('大盤', { exact: true })).toBeVisible();
+  await panel.getByRole('button', { name: '修改 ^TWII 參考設定', exact: true }).click();
+  await panel.getByLabel('參考類型', { exact: true }).selectOption('SECTOR');
+  await panel.getByRole('button', { name: '儲存參考設定', exact: true }).click();
+  await expect(panel.getByText('產業', { exact: true })).toBeVisible();
   await page.goto('/settings/reference-instruments');
-  await manager.getByRole('button', { name: '修改 ^TWII Instrument', exact: true }).click();
-  await manager.getByRole('textbox', { name: 'Reference 名稱' }).fill('TAIEX renamed');
-  await manager.getByRole('button', { name: '儲存 Instrument', exact: true }).click();
-  await expect(manager.getByText('TAIEX renamed · TW', { exact: true })).toBeVisible();
-  await manager.getByRole('button', { name: '移除 ^TWII Instrument', exact: true }).click();
-  await manager.getByRole('button', { name: '確認移除 Reference' }).click();
-  await expect(manager.locator('.error')).toContainText('Remove product mappings');
+  await manager.getByRole('button', { name: '修改 ^TWII 標的', exact: true }).click();
+  await manager.getByRole('textbox', { name: '標的名稱' }).fill('TAIEX renamed');
+  await manager.getByRole('button', { name: '儲存標的', exact: true }).click();
+  await expect(manager.getByText('TAIEX renamed · 台灣', { exact: true })).toBeVisible();
+  await manager.getByRole('button', { name: '移除 ^TWII 標的', exact: true }).click();
+  await manager.getByRole('button', { name: '確認移除標的' }).click();
+  await expect(manager.locator('.error')).toContainText('此標的仍有商品使用');
   await manager.getByRole('button', { name: '取消移除' }).click();
   await page.goto('/products/00631L?market=TW');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   for (const symbol of ['^TWII', '^TSE50']) {
-    await panel.getByRole('button', { name: `移除 ${symbol} Mapping`, exact: true }).click();
-    await panel.getByRole('button', { name: '確認移除 Reference' }).click();
-    await expect(panel.getByRole('status')).toHaveText('Reference Mapping 已移除');
+    await panel.getByRole('button', { name: `移除 ${symbol} 參考設定`, exact: true }).click();
+    await panel.getByRole('button', { name: '確認移除參考標的' }).click();
+    await expect(panel.getByRole('status')).toHaveText('商品參考設定已移除');
   }
-  await expect(panel.getByText('尚未設定 Reference，分析將使用商品本身資料。')).toBeVisible();
+  await expect(panel.getByText('尚未設定參考標的，分析將使用商品本身資料。')).toBeVisible();
   await page.goto('/settings/reference-instruments');
   for (const symbol of ['^TWII', '^TSE50']) {
-    await manager.getByRole('button', { name: `移除 ${symbol} Instrument`, exact: true }).click();
-    await manager.getByRole('button', { name: '確認移除 Reference' }).click();
-    await expect(manager.getByRole('status')).toHaveText('Reference Instrument 已移除');
+    await manager.getByRole('button', { name: `移除 ${symbol} 標的`, exact: true }).click();
+    await manager.getByRole('button', { name: '確認移除標的' }).click();
+    await expect(manager.getByRole('status')).toHaveText('共用市場標的已移除');
   }
   expect(calls.some(c => c.endsWith('/analysis/force'))).toBeFalsy();
   expect(errors).toEqual([]);

@@ -33,7 +33,7 @@ export function PromptSettings() {
       await load(selectedId); setMessage('已切換使用中的版本');
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
-  return <><Link className="back" to="/">← 我的追蹤</Link><div className="page-heading"><div><span className="eyebrow">INVESTMENT ANALYSIS PROMPT</span><h1>Prompt 設定</h1><p className="muted">GPT 與 DeepSeek 共用核心投資規則。儲存時建立新版本，歷史內容保留。</p></div></div>
+  return <><Link className="back" to="/">← 我的追蹤</Link><div className="page-heading"><div><span className="eyebrow">投資分析 Prompt</span><h1>Prompt 設定</h1><p className="muted">GPT 與 DeepSeek 共用核心投資規則。儲存時建立新版本，歷史內容保留。</p></div></div>
     {error && <ErrorState message={error} retry={() => void load().catch(e => setError((e as Error).message))} />}
     {message && <p role="status">{message}</p>}
     {!settings ? !error && <LoadingState /> : <section className="panel prompt-settings">
@@ -43,7 +43,7 @@ export function PromptSettings() {
         setSelectedId(version.id); setContent(version.content); setMessage('');
       }}>{settings.versions.map(v => <option key={v.id} value={v.id}>{v.version}{v.id === settings.activeVersionId ? '（使用中）' : ''} · {new Date(v.createdAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}</option>)}</select></label>
       <form onSubmit={e => void save(e)}><label>Prompt 內容<textarea aria-label="Prompt 內容" required maxLength={30000} rows={18} disabled={busy} value={content} onChange={e => setContent(e.target.value)} /></label>
-        <p className="muted small">JSON Schema、持倉數量驗證與市場資料來源由系統固定管理。修改 Prompt 不會改變輸出結構；設定操作不會執行 AI 分析。</p>
+        <p className="muted small">JSON 輸出結構、持倉數量驗證與市場資料來源由系統固定管理。修改 Prompt 不會改變輸出結構；設定操作不會執行 AI 分析。</p>
         <div className="prompt-actions"><button className="primary" disabled={busy || !content.trim()}>儲存為新版本並啟用</button><button type="button" disabled={busy || selectedId === settings.activeVersionId} onClick={() => void activate()}>啟用選取的已儲存版本</button></div>
       </form></section>}
   </>;

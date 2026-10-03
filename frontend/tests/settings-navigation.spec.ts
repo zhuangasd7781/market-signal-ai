@@ -8,12 +8,12 @@ test('account dropdown navigates existing settings routes and works by mouse and
   await page.addInitScript(() => sessionStorage.setItem('demo-session', 'yes'));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: '我的追蹤' })).toBeVisible();
-  const trigger = page.getByRole('button', { name: 'Demo 投資人，開啟帳戶選單' });
+  const trigger = page.getByRole('button', { name: '示範投資人，開啟帳戶選單' });
   await trigger.click();
   const menu = page.getByRole('navigation', { name: '帳戶與設定' });
   await expect(menu).toBeVisible();
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-  for (const label of ['AI 設定', '分析排程', 'Prompt 設定', 'Reference Instruments'])
+  for (const label of ['AI 設定', '分析排程', 'Prompt 設定', '共用市場標的'])
     await expect(menu.getByRole('link', { name: label })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(menu).toHaveCount(0);
@@ -26,7 +26,7 @@ test('account dropdown navigates existing settings routes and works by mouse and
     ['AI 設定', '/settings/ai', 'AI 設定'],
     ['分析排程', '/settings/schedule', '分析排程'],
     ['Prompt 設定', '/settings/prompts', 'Prompt 設定'],
-    ['Reference Instruments', '/settings/reference-instruments', 'Reference Instruments'],
+    ['共用市場標的', '/settings/reference-instruments', '共用市場標的'],
   ]) {
     await trigger.click();
     await menu.getByRole('link', { name: label }).click();
@@ -39,7 +39,7 @@ test('account dropdown navigates existing settings routes and works by mouse and
   await page.goto('/products/00631L?market=TW');
   await expect(page.getByRole('heading', { name: '市場參考標的' })).toBeVisible();
   await expect(page.getByRole('button', { name: '新增此商品參考標的' })).toBeVisible();
-  await expect(page.getByRole('button', { name: '管理 Reference Instruments' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '管理 共用市場標的' })).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await trigger.click();
   await expect(menu).toBeVisible();
