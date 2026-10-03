@@ -45,7 +45,7 @@ public sealed class NewsAnalysisIntegrationTests
         var order=new List<string>();var s=new Store(Context());var refresh=new Refresh(Context(88)){Order=order};
         var resolver=Resolver(s,refresh);var signals=new MemorySignalStore();var marketStore=new MemoryMarketStore(signals);
         var gpt=new Capture("openai",order);var deep=new Capture("deepseek",order);
-        var runner=new MarketAnalysisRunner(new Market(order),marketStore,signals,[gpt,deep],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
+        var runner=AnalysisRunnerFixture.Create(new Market(order),marketStore,signals,[gpt,deep],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
         var result=await runner.RunProductAsync("00631L",["openai","deepseek"],true,default);
         Assert.Equal(new[]{"refresh","quote","deepseek","openai"},order);Assert.Equal(1,refresh.Calls);Assert.Equal(0,s.Reads);
         Assert.Same(gpt.Input,deep.Input);Assert.Same(gpt.Input!.NewsContext,deep.Input!.NewsContext);
@@ -68,7 +68,7 @@ public sealed class NewsAnalysisIntegrationTests
     {
         var store=new Store(Context());var refresh=new Refresh(Context(88));var resolver=Resolver(store,refresh);
         var signals=new MemorySignalStore();var capture=new Capture("deepseek",[]);
-        var runner=new MarketAnalysisRunner(new Market([]),new MemoryMarketStore(signals),signals,[capture],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
+        var runner=AnalysisRunnerFixture.Create(new Market([]),new MemoryMarketStore(signals),signals,[capture],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
         await runner.RunProductAsync("00631L",["deepseek"],default);Assert.Equal(1,store.Reads);Assert.Equal(0,refresh.Calls);
         await runner.RunAllAsync(default);Assert.Equal(2,store.Reads);Assert.Equal(0,refresh.Calls);
     }
@@ -78,7 +78,7 @@ public sealed class NewsAnalysisIntegrationTests
     public async Task MissingOrFailedStorageStillAllowsTargetAnalysis(bool failStorage)
     {
         var resolver=Resolver(new(null){Fail=failStorage},new(null));var signals=new MemorySignalStore();var deep=new Capture("deepseek",[]);
-        var runner=new MarketAnalysisRunner(new Market([]),new MemoryMarketStore(signals),signals,[deep],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
+        var runner=AnalysisRunnerFixture.Create(new Market([]),new MemoryMarketStore(signals),signals,[deep],NullLogger<MarketAnalysisRunner>.Instance,newsEvidence:resolver);
         var result=await runner.RunProductAsync("00631L",["deepseek"],default);
         Assert.Equal("COMPLETED",Assert.Single(result.Providers).Status);Assert.Equal("UNAVAILABLE",deep.Input!.NewsContext!.Status);
     }

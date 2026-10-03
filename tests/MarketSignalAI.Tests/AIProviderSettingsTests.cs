@@ -58,7 +58,7 @@ public sealed class AIProviderSettingsTests
         }));
         var signals=new MemorySignalStore();var marketStore=new MemoryMarketStore(signals);var settings=new MemoryAIProviderSettingsStore(Defaults(gptEnabled));
         if(batch)await settings.SaveAsync(1,new("openai",false,"configured-gpt"),default);
-        var runner=new MarketAnalysisRunner(new Market(),marketStore,signals,[new OpenAIAnalyst(gptHttp,OpenAIAnalystTests.Options()),new DeepSeekAnalyst(deepHttp,DeepSeekAnalystTests.Options())],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
+        var runner=AnalysisRunnerFixture.Create(new Market(),marketStore,signals,[new OpenAIAnalyst(gptHttp,OpenAIAnalystTests.Options()),new DeepSeekAnalyst(deepHttp,DeepSeekAnalystTests.Options())],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
         var runs=batch?(await runner.RunAllAsync(default)).Completed:[await runner.RunProductAsync("00631L",gptEnabled?new[]{"DeepSeek"}:null,default)];
         Assert.Equal(0,gptCalls);Assert.Equal(batch?3:1,deepCalls);
         Assert.All(runs,r=>{var outcome=Assert.Single(r.Providers);Assert.Equal("deepseek",outcome.Provider);Assert.Equal("reported-deepseek",outcome.Model);Assert.Equal("configured-deep",outcome.ConfiguredModel);});
@@ -89,7 +89,7 @@ public sealed class AIProviderSettingsTests
     {
         var gpt=new CountingAnalyst("openai");var deep=new CountingAnalyst("deepseek");var signals=new MemorySignalStore();var store=new MemoryMarketStore(signals);
         var settings=new MemoryAIProviderSettingsStore(Defaults());
-        var runner=new MarketAnalysisRunner(new Market(),store,signals,[gpt,deep],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
+        var runner=AnalysisRunnerFixture.Create(new Market(),store,signals,[gpt,deep],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
         Assert.Equal(2,(await runner.RunProductAsync("00631L",default)).Providers.Count);
         await settings.SaveAsync(1,new("openai",false,"changed-model"),default);
         Assert.Single((await runner.RunProductAsync("00631L",default)).Providers);
@@ -102,7 +102,7 @@ public sealed class AIProviderSettingsTests
     {
         var forbidden=new ThrowingAnalyst();var signals=new MemorySignalStore();var store=new MemoryMarketStore(signals);
         var settings=new MemoryAIProviderSettingsStore(Defaults(false,false));
-        var runner=new MarketAnalysisRunner(new Market(),store,signals,[forbidden],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
+        var runner=AnalysisRunnerFixture.Create(new Market(),store,signals,[forbidden],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
         var before=(await signals.GetHistoryAsync(1,1,default)).Count;
         Assert.Empty((await runner.RunProductAsync("00631L",default)).Providers);
         Assert.Equal(0,forbidden.Calls);Assert.Empty(store.Failures);
@@ -119,7 +119,7 @@ public sealed class AIProviderSettingsTests
         }));
         var signals=new MemorySignalStore();var store=new MemoryMarketStore(signals);var settings=new MemoryAIProviderSettingsStore(Defaults(false));
         var options=DeepSeekAnalystTests.Options();
-        var runner=new MarketAnalysisRunner(new Market(),store,signals,[new DeepSeekAnalyst(http,options)],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
+        var runner=AnalysisRunnerFixture.Create(new Market(),store,signals,[new DeepSeekAnalyst(http,options)],NullLogger<MarketAnalysisRunner>.Instance,settings:settings);
         var first=Assert.Single((await runner.RunProductAsync("00631L",default)).Providers);
         await settings.SaveAsync(1,new("deepseek",true,"edited-model"),default);
         var second=Assert.Single((await runner.RunProductAsync("00631L",default)).Providers);
@@ -174,7 +174,7 @@ public sealed class AIProviderSettingsTests
         var settings = new MemoryAIProviderSettingsStore(Defaults(false));
         await settings.SaveAsync(1, new("deepseek", true, "configured-deep", Visible: false), default);
         var gpt = new CountingAnalyst("openai"); var deep = new CountingAnalyst("deepseek");
-        var runner = new MarketAnalysisRunner(new Market(), marketStore, signals, new IAIAnalyst[] { gpt, deep }, NullLogger<MarketAnalysisRunner>.Instance, settings: settings);
+        var runner = AnalysisRunnerFixture.Create(new Market(), marketStore, signals, new IAIAnalyst[] { gpt, deep }, NullLogger<MarketAnalysisRunner>.Instance, settings: settings);
         if (batch) await runner.RunAllAsync(default); else await runner.RunProductAsync("00631L", default);
         Assert.Equal(0, gpt.Calls); Assert.Equal(batch ? 3 : 1, deep.Calls);
     }

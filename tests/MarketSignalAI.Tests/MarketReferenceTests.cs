@@ -76,7 +76,7 @@ public sealed class MarketReferenceTests
         var instrument=await references.SaveInstrumentAsync(1,null,"^TWII","TAIEX","TW",default);
         foreach(var product in await store.GetActiveTrackedProductsAsync("TW",default)) await references.SaveReferenceAsync(1,product.Id,null,instrument.Id,"BROAD_MARKET",default);
         var market=new Market {FailReference=fail};var gpt=new CaptureAnalyst("openai");var deepseek=new CaptureAnalyst("deepseek");
-        var runner=new MarketAnalysisRunner(market,store,signals,[gpt,deepseek],NullLogger<MarketAnalysisRunner>.Instance,references);
+        var runner=AnalysisRunnerFixture.Create(market,store,signals,[gpt,deepseek],NullLogger<MarketAnalysisRunner>.Instance,references);
         var result=await runner.RunAllAsync(default);Assert.Empty(result.Failed);
         Assert.Equal(1,market.ReferenceQuoteCalls);Assert.Equal(1,market.ReferenceHistoryCalls);
         Assert.Equal(3,gpt.Contexts.Count);Assert.Equal(3,deepseek.Contexts.Count);
@@ -103,7 +103,7 @@ public sealed class MarketReferenceTests
         var instrument=await references.SaveInstrumentAsync(1,null,"^TWII","TAIEX","TW",default);
         var mapping=await references.SaveReferenceAsync(1,1,null,instrument.Id,"BROAD_MARKET",default);
         var gpt=new CaptureAnalyst("openai");var deepseek=new CaptureAnalyst("deepseek");
-        var runner=new MarketAnalysisRunner(new Market(),new MemoryMarketStore(signals),signals,[gpt,deepseek],NullLogger<MarketAnalysisRunner>.Instance,references);
+        var runner=AnalysisRunnerFixture.Create(new Market(),new MemoryMarketStore(signals),signals,[gpt,deepseek],NullLogger<MarketAnalysisRunner>.Instance,references);
         await runner.RunProductAsync("00631L",default);
         var firstSnapshot=(await signals.GetHistoryAsync(1,1,default)).First(x=>x.Model=="captured-live").InputSnapshotJson;
         await references.SaveInstrumentAsync(1,instrument.Id,"^SOX","SOX","US",default);
@@ -121,7 +121,7 @@ public sealed class MarketReferenceTests
     public async Task NoMappingDoesNotGuessBenchmarks()
     {
         var signals=new MemorySignalStore();var market=new Market();var capture=new CaptureAnalyst("openai");
-        var runner=new MarketAnalysisRunner(market,new MemoryMarketStore(signals),signals,[capture],NullLogger<MarketAnalysisRunner>.Instance,new MemoryMarketReferenceStore());
+        var runner=AnalysisRunnerFixture.Create(market,new MemoryMarketStore(signals),signals,[capture],NullLogger<MarketAnalysisRunner>.Instance,new MemoryMarketReferenceStore());
         await runner.RunProductAsync("00631L",default);Assert.Empty(Assert.Single(capture.Contexts).MarketReferences);Assert.Equal(0,market.ReferenceQuoteCalls);
     }
     [Fact]

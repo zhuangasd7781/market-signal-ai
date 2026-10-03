@@ -82,7 +82,7 @@ public sealed class TwMarketContextTests
         var source = new ContextSource(sourceFails);
         var gpt = new CapturingAnalyst("openai");
         var deepseek = new CapturingAnalyst("deepseek");
-        var runner = new MarketAnalysisRunner(new Market(), new MemoryMarketStore(signals), signals,
+        var runner = AnalysisRunnerFixture.Create(new Market(), new MemoryMarketStore(signals), signals,
             [gpt, deepseek], NullLogger<MarketAnalysisRunner>.Instance, twMarket: source);
         var run = await runner.RunProductAsync("00631L", ["openai", "deepseek"], default);
         Assert.All(run.Providers, x => Assert.Equal("COMPLETED", x.Status));

@@ -31,7 +31,7 @@ public sealed class ScheduleTests
         var signalStore = new MemorySignalStore();
         var store = new MemoryMarketStore(signalStore);
         var market = new StubMarket();
-        var runner = new MarketAnalysisRunner(market, store, signalStore, [new MockAIAnalyst("openai")], NullLogger<MarketAnalysisRunner>.Instance);
+        var runner = AnalysisRunnerFixture.Create(market, store, signalStore, [new MockAIAnalyst("openai")], NullLogger<MarketAnalysisRunner>.Instance);
         await Assert.ThrowsAsync<InvalidDataException>(() => runner.RunProductAsync("00631L", default, new DateOnly(2026, 10, 1)));
         Assert.Null(await store.GetLatestSnapshotAsync(1, default));
     }

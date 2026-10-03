@@ -38,6 +38,8 @@ builder.Services.AddHttpClient<ITwMarketContextProvider, TwseMarketContextProvid
     client.Timeout = TimeSpan.FromSeconds(12);
     client.DefaultRequestHeaders.UserAgent.ParseAdd("MarketSignalAI/1.0");
 });
+builder.Services.AddScoped<AnalysisContextBuilder>();
+builder.Services.AddScoped<AIProviderExecutionService>();
 builder.Services.AddScoped<IMarketAnalysisRunner, MarketAnalysisRunner>();
 builder.Services.AddScoped<IMarketScheduleExecutor, MarketScheduleExecutor>();
 var openAI = builder.Configuration.GetSection("OpenAI").Get<OpenAIAnalystOptions>() ?? new();

@@ -8,4 +8,5 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"><PrivateAssets>all</PrivateAssets></PackageReference>
   </ItemGroup>
   <ItemGroup><None Include="../../backend/MarketSignalAI.Infrastructure/Migrations/001_initial.sql" Link="001_initial.sql" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

@@ -71,7 +71,7 @@ public sealed class PromptTests
         });
         var second = new CapturingAnalyst("openai", context => { inputs.Add(context); return Task.CompletedTask; });
         var signals = new MemorySignalStore(); var market = new MemoryMarketStore(signals);
-        var runner = new MarketAnalysisRunner(new Market(), market, signals, [first, second], NullLogger<MarketAnalysisRunner>.Instance, prompts: prompts);
+        var runner = AnalysisRunnerFixture.Create(new Market(), market, signals, [first, second], NullLogger<MarketAnalysisRunner>.Instance, prompts: prompts);
         var run1 = await runner.RunProductAsync("00631L", default);
         var run2 = await runner.RunProductAsync("00631L", default);
         Assert.Same(inputs[0], inputs[1]); Assert.Same(inputs[2], inputs[3]);
@@ -129,7 +129,7 @@ public sealed class PromptTests
             inputs.Add(body.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
             return OpenAIAnalystTests.Json(DeepSeekAnalystTests.Response());
         }));
-        var signals = new MemorySignalStore(); var runner = new MarketAnalysisRunner(new Market(), new MemoryMarketStore(signals), signals,
+        var signals = new MemorySignalStore(); var runner = AnalysisRunnerFixture.Create(new Market(), new MemoryMarketStore(signals), signals,
             [new OpenAIAnalyst(openHttp, OpenAIAnalystTests.Options()), new DeepSeekAnalyst(deepHttp, DeepSeekAnalystTests.Options())], NullLogger<MarketAnalysisRunner>.Instance, prompts: store);
         var run = await runner.RunProductAsync("00631L", default);
         Assert.Equal(2, run.Providers.Count(x => x.Status == "COMPLETED")); Assert.All(run.Providers.Where(x => x.Status == "COMPLETED"), x => Assert.Equal("COMPLETED", x.Status));

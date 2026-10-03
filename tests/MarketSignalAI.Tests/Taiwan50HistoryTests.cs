@@ -165,7 +165,7 @@ public sealed class Taiwan50HistoryTests
             inputs.Add(input);
             return OpenAIAnalystTests.Json(DeepSeekAnalystTests.Response());
         }));
-        var runner = new MarketAnalysisRunner(new TargetWithReferences(new YahooMarketDataProvider(http)), store, signals,
+        var runner = AnalysisRunnerFixture.Create(new TargetWithReferences(new YahooMarketDataProvider(http)), store, signals,
             [new OpenAIAnalyst(gptHttp, OpenAIAnalystTests.Options()), new DeepSeekAnalyst(deepHttp, DeepSeekAnalystTests.Options()), new MockAIAnalyst("claude")],
             NullLogger<MarketAnalysisRunner>.Instance, references);
         var batch = await runner.RunAllAsync(default);
